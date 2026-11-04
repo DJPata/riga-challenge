@@ -5,7 +5,8 @@ import {
   runTransaction, increment, serverTimestamp, query, orderBy, limit, limitToLast, writeBatch, arrayUnion,
   arrayRemove, FieldPath,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
+import { firebaseConfig, VAPID_KEY } from "./firebase-config.js";
 import { CATEGORIES, JOKER, BINGO, FINALE, IMPOSTER_WORDS, LOCATIONS } from "./tasks.js";
 
 const app = initializeApp(firebaseConfig);
@@ -109,10 +110,33 @@ function updateNotifyBtn() {
 }
 $("#notify-btn").onclick = async () => {
   if (!("Notification" in window)) return;
-  await Notification.requestPermission();
+  const perm = await Notification.requestPermission();
   updateNotifyBtn();
+  if (perm === "granted") registerPush(true);
 };
 updateNotifyBtn();
+
+// ---------- Push (kommt auch, wenn die App zu ist) ----------
+// Der Server (functions/index.js) schickt zu jedem Pflicht-Alarm eine Push-Nachricht an alle Geräte,
+// die hier ihren Token hinterlegt haben.
+async function registerPush(loud = false) {
+  try {
+    if (!VAPID_KEY || !("Notification" in window) || Notification.permission !== "granted") return;
+    if (!(await messagingSupported())) return loud && toast("Push wird von diesem Browser nicht unterstützt");
+    const reg = await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) return;
+    await setDoc(doc(db, "tokens", token.slice(-40).replace(/[^A-Za-z0-9_-]/g, "_")), {
+      token, playerId: meId || null, name: me?.name || null, ua: navigator.userAgent.slice(0, 120), updatedAt: Date.now(),
+    });
+    $("#notify-btn").textContent = "Push-Benachrichtigungen sind an ✓";
+    if (loud) toast("Push ist an: Alarme kommen jetzt auch bei geschlossener App 🔔");
+  } catch (e) {
+    console.error("Push", e);
+    if (loud) toast("Push konnte nicht eingerichtet werden: " + e.message);
+  }
+}
 
 // ---------- Beitreten ----------
 async function start() {
@@ -163,6 +187,7 @@ function enter(id) {
   resetReels();
   listenGame();
   startTicker();
+  setTimeout(() => registerPush(false), 2500);
 }
 
 // ---------- Live-Daten ----------
@@ -661,7 +686,7 @@ document.querySelectorAll("[data-res]").forEach((b) => b.addEventListener("click
 
 // ---------- Pflicht-Alarm: jede Stunde zu einer zufälligen Minute ----------
 const ALARM_WINDOW_MIN = 15;                          // so lange hat man nach dem Alarm Zeit zum Ziehen
-const alarmHourOk = (h) => h >= 10 || h < 2;          // nur zwischen 10:00 und 01:59 Uhr (Uhrzeit des Handys)
+const alarmHourOk = (h) => h >= 10 || h < 2;          // nur zwischen 10:00 und 01:59 Uhr Riga-Zeit (= 9:00–0:59 deutsche Zeit)
 const HOUR = 60 * MIN;
 let alarmSetting = false;                             // im Admin-Bereich für alle umschaltbar
 
@@ -678,7 +703,8 @@ function alarmAt(hourIdx) {
   x = (x ^ (x >>> 16)) >>> 0; // immer positiv
   return hourIdx * HOUR + (x % 3600) * 1000;
 }
-const alarmAllowed = (t) => alarmHourOk(new Date(t).getHours());
+const RIGA_HOUR = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Riga", hour: "2-digit", hourCycle: "h23" });
+const alarmAllowed = (t) => alarmHourOk(Number(RIGA_HOUR.format(t))); // Ruhezeit nach Riga-Uhrzeit
 function lastAlarm(now = Date.now()) {
   for (let h = Math.floor(now / HOUR), k = 0; k < 30; k++, h--) {
     const t = alarmAt(h);

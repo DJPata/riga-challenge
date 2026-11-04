@@ -8,3 +8,6 @@ export const firebaseConfig = {
   appId: "1:239546070705:web:936a7bae0cd6f8aac0d490",
   measurementId: "G-3XCQ9PTMKK",
 };
+
+// Öffentlicher Web-Push-Schlüssel (Firebase-Konsole → Projekteinstellungen → Cloud Messaging → Web-Push-Zertifikate)
+export const VAPID_KEY = "";
