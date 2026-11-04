@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161c">
+<title>Riga-Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Riga">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+
+<!-- Beitreten -->
+<section id="join" class="screen">
+  <div class="join-box">
+    <p class="eyebrow">Riga · 10.–13. Dezember</p>
+    <h1>Riga-<br>Challenge</h1>
+    <p class="muted">Wer bist du?</p>
+    <div id="existing-players" class="chips"></div>
+    <form id="join-form">
+      <input id="join-name" placeholder="Neuer Name" maxlength="20" autocomplete="off">
+      <button class="btn primary" type="submit">Mitspielen</button>
+    </form>
+  </div>
+</section>
+
+<!-- Spiel -->
+<section id="game" class="screen hidden">
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">Spieler</span>
+      <strong id="me-name"></strong>
+    </div>
+    <div class="score"><span id="me-points">0</span><small>Punkte</small></div>
+  </header>
+
+  <main>
+    <!-- Rad -->
+    <div id="tab-wheel" class="tab">
+      <div id="task-card" class="card hidden">
+        <div class="task-head">
+          <p class="eyebrow" id="task-meta"></p>
+          <div class="timer"><span id="task-timer">60:00</span><small>übrig</small></div>
+        </div>
+        <div class="bar"><div id="task-bar"></div></div>
+        <p id="task-text" class="task-text"></p>
+        <div class="actions">
+          <button class="btn primary" data-res="done">Geschafft</button>
+          <button class="btn" data-res="half">Versucht (½)</button>
+          <button class="btn danger" data-res="refuse">Verweigert</button>
+        </div>
+        <p class="muted small">60 Minuten Zeit. Verweigert oder Zeit abgelaufen = Strafshot und −2 Punkte. Beweis per Foto oder 2 Zeugen. Neue Aufgabe frühestens 30 Minuten nach dem letzten Ziehen.</p>
+      </div>
+      <div id="joker-card" class="card hidden">
+        <p class="eyebrow">🃏 Joker</p>
+        <p id="joker-text" class="task-text"></p>
+        <button class="btn primary" id="joker-ok">Alles klar</button>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Schritt 1 · Wo bist du gerade?</p>
+        <div id="loc-grid" class="loc-grid"></div>
+      </div>
+
+      <div class="card slot-card">
+        <p class="eyebrow">Schritt 2 · Am Hebel ziehen</p>
+        <div class="slot">
+          <div class="reel"><div class="strip" id="reel0"></div></div>
+          <div class="reel"><div class="strip" id="reel1"></div></div>
+          <div class="reel"><div class="strip" id="reel2"></div></div>
+        </div>
+        <div class="reel-labels"><span>Kategorie</span><span>Stufe</span><span>Bonus</span></div>
+        <button id="pull" class="btn primary pull">🎰 Ziehen</button>
+        <p id="slot-status" class="muted small center"></p>
+      </div>
+
+
+
+      <div id="secrets" class="card hidden">
+        <p class="eyebrow">🤫 Meine Geheimmissionen</p>
+        <ul id="secret-list"></ul>
+      </div>
+    </div>
+
+    <!-- Bingo -->
+    <div id="tab-bingo" class="tab hidden">
+      <h2>Bingo</h2>
+      <p class="muted">Tipp ein Feld an, wenn es passiert. Jede volle Reihe: +2 Punkte.</p>
+      <div id="bingo-grid" class="bingo"></div>
+      <p class="muted small">Reihen: <strong id="bingo-lines">0</strong></p>
+    </div>
+
+    <!-- Imposter -->
+    <div id="tab-imposter" class="tab hidden">
+      <h2>Imposter</h2>
+
+      <div id="imp-lobby" class="card hidden">
+        <p class="eyebrow">Lobby · Runde <span id="imp-round">1</span></p>
+        <p class="muted">Alle, die mitspielen, treten bei. Sobald jemand startet, ist die Runde geschlossen.</p>
+        <div id="imp-lobby-players" class="chips"></div>
+        <div class="levels">
+          <button class="btn" id="imp-join">Beitreten</button>
+          <button class="btn primary" id="imp-start">Spiel starten</button>
+        </div>
+        <p class="muted small">Mindestens 3 Spieler. Kategorien: Lettland, Weihnachten, Männerausflug.</p>
+      </div>
+
+      <div id="imp-running" class="card hidden">
+        <p class="eyebrow" id="imp-cat"></p>
+        <div id="imp-secret" class="secret-box">
+          <p class="muted small">Tippen und gedrückt halten zum Aufdecken</p>
+          <p id="imp-word" class="imp-word"></p>
+        </div>
+        <p class="muted" id="imp-starter"></p>
+        <p class="muted small">Reihum sagt jeder ein Wort, das zum Begriff passt. Der Imposter muss bluffen.</p>
+        <button class="btn primary" id="imp-to-vote">Zur Abstimmung</button>
+      </div>
+
+      <div id="imp-voting" class="card hidden">
+        <p class="eyebrow">Abstimmung</p>
+        <p class="muted">Wer ist der Imposter? <span id="imp-vote-count"></span></p>
+        <div id="imp-vote-list" class="vote-list"></div>
+        <button class="btn primary" id="imp-reveal">Auflösen</button>
+      </div>
+
+      <div id="imp-done" class="card hidden">
+        <p class="eyebrow">Ergebnis</p>
+        <p id="imp-result" class="task-text"></p>
+        <p class="muted" id="imp-result-detail"></p>
+        <div id="imp-guess-box" class="hidden">
+          <p class="muted small">Gefangen? Der Imposter darf einmal das Wort raten. Richtig = +2 Punkte für ihn.</p>
+          <div class="levels">
+            <button class="btn primary" id="imp-guess-yes">Richtig geraten</button>
+            <button class="btn" id="imp-guess-no">Falsch</button>
+          </div>
+        </div>
+        <button class="btn primary" id="imp-new">Neue Runde</button>
+      </div>
+
+      <div id="imp-outside" class="card hidden">
+        <p class="eyebrow">Runde läuft</p>
+        <p class="muted">Die aktuelle Runde läuft ohne dich. Bei der nächsten Runde kannst du beitreten.</p>
+      </div>
+
+      <details class="card rules">
+        <summary>Regeln & Punkte</summary>
+        <ul class="muted small">
+          <li>Alle sehen den gleichen Begriff, nur der Imposter sieht nur die Kategorie.</li>
+          <li>Reihum sagt jeder ein Wort dazu, ohne den Begriff zu verraten. Danach wird abgestimmt.</li>
+          <li>Imposter gefangen (meiste Stimmen): Alle anderen +2. Errät er danach das Wort: er +2.</li>
+          <li>Imposter entkommt: Er bekommt +5.</li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Chat -->
+    <div id="tab-chat" class="tab hidden">
+      <h2>Chat</h2>
+      <ul id="chat-list" class="chat"></ul>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" placeholder="Nachricht…" maxlength="300" autocomplete="off">
+        <button class="btn primary" type="submit">Senden</button>
+      </form>
+    </div>
+
+    <!-- Rangliste -->
+    <div id="tab-board" class="tab hidden">
+      <h2>Rangliste</h2>
+      <ol id="board" class="board"></ol>
+      <div class="card">
+        <p class="eyebrow">Finale</p>
+        <p class="muted">Am letzten Abend: Der Letzte zieht seine Verlierer-Aufgabe.</p>
+        <button class="btn" id="finale">Verlierer-Aufgabe ziehen</button>
+        <p id="finale-text" class="task-text hidden"></p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">Benachrichtigungen</p>
+        <p class="muted small">Du siehst Punkte und Chat-Nachrichten der anderen als Hinweis. Mit Erlaubnis kommen sie auch als System-Benachrichtigung, solange die App geöffnet ist.</p>
+        <button class="btn" id="notify-btn">Benachrichtigungen erlauben</button>
+        <p id="notify-hint" class="muted small hidden"></p>
+      </div>
+      <h2>Verlauf</h2>
+      <ul id="feed" class="feed"></ul>
+      <details class="admin">
+        <summary>Admin</summary>
+        <button class="btn" id="switch-player">Spieler wechseln</button>
+        <button class="btn" id="test-mode">Testmodus: aus</button>
+        <div class="reset-box">
+          <p class="muted small">Alles zurücksetzen: löscht alle Spieler, Punkte, Aufgaben, Chat, Verlauf und Imposter-Runden. Alle Geräte werden abgemeldet.</p>
+          <form id="reset-form" class="reset-form">
+            <input id="reset-code" placeholder="Reset-Code" inputmode="numeric" autocomplete="off">
+            <button class="btn danger" type="submit" id="reset">Zurücksetzen</button>
+          </form>
+        </div>
+      </details>
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="wheel" class="active">🎰<span>Aufgabe</span></button>
+    <button data-tab="bingo">🎯<span>Bingo</span></button>
+    <button data-tab="imposter">🕵️<span>Imposter</span></button>
+    <button data-tab="chat">💬<span>Chat</span><i class="badge hidden" id="chat-badge"></i></button>
+    <button data-tab="board">🏆<span>Punkte</span></button>
+  </nav>
+</section>
+
+<button id="update-banner" class="update-banner hidden">🔄 Update da – tippen zum Laden</button>
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
