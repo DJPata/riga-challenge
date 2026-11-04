@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
 import { firebaseConfig, VAPID_KEY } from "./firebase-config.js";
-import { CATEGORIES, JOKER, BINGO, FINALE, IMPOSTER_WORDS, LOCATIONS } from "./tasks.js";
+import { CATEGORIES, JOKER, FINALE, IMPOSTER_WORDS, LOCATIONS, WHO_WOULD } from "./tasks.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -16,7 +16,6 @@ const db = getFirestore(app);
 const $ = (s) => document.querySelector(s);
 const LEVEL_NAMES = { 1: "Leicht", 3: "Mittel", 5: "Hardcore" };
 const REFUSE_PENALTY = -2;
-const BINGO_LINE_POINTS = 2;
 
 // ---------- Einstellungen ----------
 const TASK_MINUTES = 60;      // so lange hat man für eine Aufgabe Zeit
@@ -168,11 +167,7 @@ $("#join-form").addEventListener("submit", async (e) => {
   const id = slug(name);
   const ref = doc(db, "players", id);
   if (!(await getDoc(ref)).exists()) {
-    const fields = shuffle(BINGO).slice(0, 24);
-    fields.splice(12, 0, "FREI");
-    const marks = Array(25).fill(false);
-    marks[12] = true;
-    await setDoc(ref, { name, points: 0, secrets: [], bingo: { fields, marks, lines: 0 } });
+    await setDoc(ref, { name, points: 0, secrets: [], titles: [] });
     await log({ who: name, text: "ist dem Spiel beigetreten" });
   }
   enter(id);
@@ -206,12 +201,16 @@ function listenGame() {
       $("#me-name").textContent = me.name;
       $("#me-points").textContent = me.points;
       renderSecrets();
-      renderBingo();
       tick();
     }),
     onSnapshot(query(collection(db, "players"), orderBy("points", "desc")), (snap) => {
       boardDocs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderBoard();
+      renderTitles();
+      renderAccusedOptions();
+      renderGericht();
+      renderPoll();
+      renderKasse();
     }),
     onSnapshot(query(collection(db, "log"), orderBy("at", "desc"), limit(80)), (snap) => {
       // Neue Einträge von anderen mit Punkten → Benachrichtigung
@@ -244,6 +243,18 @@ function listenGame() {
         : inTestRound() ? "Pflicht-Alarm: AN (Testrunde)" : "Pflicht-Alarm: aus";
       $("#test-mode").textContent = testMode ? "Testmodus: AN (keine Wartezeit)" : "Testmodus: aus";
       tick();
+    }),
+    onSnapshot(query(collection(db, "trials"), orderBy("at", "desc"), limit(30)), (s) => {
+      trials = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderGericht();
+    }),
+    onSnapshot(query(collection(db, "polls"), orderBy("at", "desc"), limit(60)), (s) => {
+      polls = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderPoll();
+    }),
+    onSnapshot(query(collection(db, "rounds"), orderBy("at", "desc"), limit(200)), (s) => {
+      rounds = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderKasse();
     }),
     onSnapshot(doc(db, "game", "imposter"), (s) => {
       imp = s.exists() ? s.data() : null;
@@ -863,48 +874,264 @@ async function resolveSecret(m, success) {
   );
 }
 
-// ---------- Bingo ----------
-const LINES = (() => {
-  const l = [];
-  for (let i = 0; i < 5; i++) {
-    l.push([0, 1, 2, 3, 4].map((j) => i * 5 + j));
-    l.push([0, 1, 2, 3, 4].map((j) => j * 5 + i));
-  }
-  l.push([0, 6, 12, 18, 24], [4, 8, 12, 16, 20]);
-  return l;
-})();
-const countLines = (marks) => LINES.filter((line) => line.every((i) => marks[i])).length;
+// ---------- Gemeinsame Helfer ----------
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const nameOf = (id) => boardDocs.find((p) => p.id === id)?.name || "?";
+const ago = (t) => {
+  const m = Math.round((Date.now() - t) / MIN);
+  return m < 1 ? "gerade eben" : m < 60 ? `vor ${m} min` : `vor ${Math.round(m / 60)} h`;
+};
 
-function renderBingo() {
-  const b = me?.bingo;
-  if (!b) return;
-  const grid = $("#bingo-grid");
-  grid.innerHTML = "";
-  b.fields.forEach((f, i) => {
-    const cell = document.createElement("button");
-    cell.className = "cell" + (i === 12 ? " free" : b.marks[i] ? " marked" : "");
-    cell.textContent = f;
-    if (i !== 12) cell.onclick = () => toggleBingo(i);
-    grid.appendChild(cell);
-  });
-  $("#bingo-lines").textContent = b.lines;
+// ---------- Riga-Gericht ----------
+let trials = [];
+const QUICK_CHARGES = ["Handy am Tisch", "Englisch geredet", "Über Arbeit geredet", "Runde geschwänzt", "Zu spät", "Eingeschlafen", "Gejammert"];
+$("#trial-quick").innerHTML = QUICK_CHARGES.map((c) => `<button type="button" class="chip">${esc(c)}</button>`).join("");
+$("#trial-quick").querySelectorAll("button").forEach((b) => (b.onclick = () => ($("#trial-charge").value = b.textContent)));
+
+function renderAccusedOptions() {
+  const sel = $("#trial-accused");
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Wen klagst du an?</option>' +
+    boardDocs.filter((p) => p.id !== meId).map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+  sel.value = cur;
 }
 
-async function toggleBingo(i) {
-  const marks = [...me.bingo.marks];
-  marks[i] = !marks[i];
-  const lines = countLines(marks);
-  const diff = lines - me.bingo.lines;
-  await updateDoc(doc(db, "players", meId), {
-    "bingo.marks": marks,
-    "bingo.lines": lines,
-    points: increment(diff * BINGO_LINE_POINTS),
+$("#trial-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const accusedId = $("#trial-accused").value;
+  const charge = $("#trial-charge").value.trim();
+  if (!accusedId || !charge) return toast("Wen und warum?");
+  if (trials.some((t) => t.status === "open" && t.byId === meId)) return toast("Du hast schon eine offene Anklage");
+  await addDoc(collection(db, "trials"), {
+    byId: meId, byName: me.name, accusedId, accusedName: nameOf(accusedId), charge, votes: {}, status: "open", at: Date.now(),
   });
-  if (diff > 0) {
-    await log({ who: me.name, text: "ruft BINGO! 🎯", points: diff * BINGO_LINE_POINTS });
-    toast("BINGO! 🎯");
+  await chatSystem(`⚖️ ${me.name} klagt ${nameOf(accusedId)} an: „${charge}“. Jetzt unter Spiele → Gericht abstimmen!`, "trial");
+  $("#trial-charge").value = "";
+  $("#trial-accused").value = "";
+  toast("Anklage erhoben ⚖️");
+});
+
+const jurors = (t) => boardDocs.filter((p) => p.id !== t.accusedId && p.id !== t.byId);
+
+function renderGericht() {
+  const open = trials.filter((t) => t.status === "open");
+  const box = $("#trial-open");
+  box.innerHTML = "";
+  open.forEach((t) => {
+    const votes = t.votes || {};
+    const j = jurors(t);
+    const voted = j.filter((p) => votes[p.id]).length;
+    const canVote = meId !== t.accusedId && meId !== t.byId;
+    const mine = votes[meId];
+    const card = document.createElement("div");
+    card.className = "card trial";
+    card.innerHTML = `
+      <p class="eyebrow">⚖️ Offene Anklage · ${ago(t.at)}</p>
+      <p class="task-text">${esc(t.byName)} gegen ${esc(t.accusedName)}</p>
+      <p class="charge">„${esc(t.charge)}“</p>
+      ${canVote ? `<div class="levels">
+        <button class="btn ${mine === "guilty" ? "primary" : ""}" data-v="guilty">👎 Schuldig</button>
+        <button class="btn ${mine === "innocent" ? "primary" : ""}" data-v="innocent">👍 Unschuldig</button>
+      </div>` : `<p class="muted small">${meId === t.accusedId ? "Du bist angeklagt. Verteidige dich mündlich!" : "Du bist der Ankläger."}</p>`}
+      <p class="muted small">${voted}/${j.length} Geschworene haben abgestimmt</p>
+      <button class="btn wide" data-verdict>🔨 Urteil verkünden</button>`;
+    card.querySelectorAll("[data-v]").forEach((b) => (b.onclick = () => updateDoc(doc(db, "trials", t.id), new FieldPath("votes", meId), b.dataset.v)));
+    card.querySelector("[data-verdict]").onclick = () => verdict(t.id);
+    box.appendChild(card);
+  });
+  const done = trials.filter((t) => t.status === "closed").slice(0, 8);
+  $("#trial-done").innerHTML = done.length
+    ? done.map((t) => `<li>${t.verdict === "guilty" ? "👎 <b>Schuldig</b>" : "👍 <b>Freispruch</b>"}: ${esc(t.accusedName)} – „${esc(t.charge)}“
+        <div class="time">Ankläger ${esc(t.byName)} · ${ago(t.at)} · ${t.g || 0}:${t.i || 0} Stimmen</div></li>`).join("")
+    : '<li class="muted small">Noch keine Urteile.</li>';
+}
+
+async function verdict(id) {
+  const t = trials.find((x) => x.id === id);
+  const j = jurors(t);
+  const voted = j.filter((p) => (t.votes || {})[p.id]).length;
+  if (j.length && voted < Math.ceil(j.length / 2)) return toast(`Erst muss mindestens die Hälfte abstimmen (${voted}/${j.length})`);
+  if (voted < j.length && !window.confirm("Noch nicht alle haben abgestimmt. Trotzdem Urteil verkünden?")) return;
+  let res;
+  try {
+    res = await runTransaction(db, async (tx) => {
+      const ref = doc(db, "trials", id);
+      const d = (await tx.get(ref)).data();
+      if (!d || d.status !== "open") throw new Error("Schon entschieden");
+      const v = Object.values(d.votes || {});
+      const g = v.filter((x) => x === "guilty").length;
+      const i = v.filter((x) => x === "innocent").length;
+      const guilty = g > i; // Gleichstand = Freispruch
+      const loser = guilty ? d.accusedId : d.byId;
+      tx.update(doc(db, "players", loser), { points: increment(-1) });
+      tx.update(ref, { status: "closed", verdict: guilty ? "guilty" : "innocent", g, i, closedAt: Date.now() });
+      return { d, guilty, g, i };
+    });
+  } catch (e) {
+    return toast(e.message);
+  }
+  const { d, guilty, g, i } = res;
+  const loserName = guilty ? d.accusedName : d.byName;
+  const loserId = guilty ? d.accusedId : d.byId;
+  await log({
+    who: loserName, byId: loserId, points: -1,
+    text: guilty ? `wurde schuldig gesprochen (${g}:${i}): „${d.charge}“ 🥃` : `hat falsch angeklagt (${g}:${i}): „${d.charge}“ 🥃`,
+  });
+  await chatSystem(
+    guilty
+      ? `🔨 SCHULDIG (${g}:${i})! ${d.accusedName} wegen „${d.charge}“: −1 Punkt und Strafshot 🥃`
+      : `🔨 FREISPRUCH (${g}:${i})! ${d.accusedName} ist unschuldig. Ankläger ${d.byName}: −1 Punkt und Strafshot 🥃`,
+    "fail"
+  );
+}
+
+// ---------- Wer würde am ehesten …? ----------
+let polls = [];
+function renderPoll() {
+  const open = polls.find((p) => p.status === "open");
+  const last = polls.find((p) => p.status === "closed");
+  $("#poll-open").classList.toggle("hidden", !open);
+  $("#poll-none").classList.toggle("hidden", !!open);
+  if (open) {
+    const votes = open.votes || {};
+    $("#poll-q").textContent = "Wer würde am ehesten " + open.q;
+    const list = $("#poll-options");
+    list.innerHTML = "";
+    boardDocs.forEach((p) => {
+      const b = document.createElement("button");
+      b.className = "btn" + (votes[meId] === p.id ? " mine" : "");
+      b.innerHTML = `<span>${esc(p.name)}${p.id === meId ? " (du)" : ""}</span><span>${votes[meId] === p.id ? "✓" : ""}</span>`;
+      b.onclick = () => updateDoc(doc(db, "polls", open.id), new FieldPath("votes", meId), p.id);
+      list.appendChild(b);
+    });
+    const n = Object.keys(votes).length;
+    $("#poll-count").textContent = `${n}/${boardDocs.length} haben abgestimmt (geheim)`;
+  }
+  $("#poll-last").classList.toggle("hidden", !last);
+  if (last) {
+    $("#poll-last-q").textContent = "Wer würde am ehesten " + last.q;
+    const counts = last.counts || {};
+    const max = Math.max(1, ...Object.values(counts));
+    $("#poll-last-bars").innerHTML = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([id, c]) => `<div class="bar-row ${c === max ? "win" : ""}"><span class="bn">${esc(nameOf(id))}</span>
+        <span class="bt"><i style="width:${(c / max) * 100}%"></i></span><span class="bc">${c}</span></div>`)
+      .join("");
   }
 }
+
+$("#poll-new").onclick = async () => {
+  if (polls.some((p) => p.status === "open")) return;
+  const used = new Set(polls.map((p) => p.qi));
+  let free = WHO_WOULD.map((_, i) => i).filter((i) => !used.has(i));
+  if (!free.length) free = WHO_WOULD.map((_, i) => i);
+  const qi = rand(free);
+  await addDoc(collection(db, "polls"), { qi, q: WHO_WOULD[qi].q, title: WHO_WOULD[qi].title, votes: {}, status: "open", at: Date.now(), byId: meId });
+  await chatSystem(`🗳️ Neue Frage: Wer würde am ehesten ${WHO_WOULD[qi].q} Jetzt unter Spiele abstimmen!`, "poll");
+};
+
+$("#poll-reveal").onclick = async () => {
+  const open = polls.find((p) => p.status === "open");
+  if (!open) return;
+  const n = Object.keys(open.votes || {}).length;
+  if (n < 2) return toast("Mindestens 2 Stimmen nötig");
+  if (n < boardDocs.length && !window.confirm("Noch nicht alle haben abgestimmt. Trotzdem aufdecken?")) return;
+  let res;
+  try {
+    res = await runTransaction(db, async (tx) => {
+      const ref = doc(db, "polls", open.id);
+      const d = (await tx.get(ref)).data();
+      if (!d || d.status !== "open") throw new Error("Schon aufgedeckt");
+      const counts = {};
+      Object.values(d.votes || {}).forEach((id) => (counts[id] = (counts[id] || 0) + 1));
+      const max = Math.max(...Object.values(counts));
+      const winners = Object.keys(counts).filter((id) => counts[id] === max);
+      const majority = Object.entries(d.votes || {}).filter(([, t]) => winners.includes(t)).map(([v]) => v);
+      majority.forEach((v) => tx.update(doc(db, "players", v), { points: increment(1) }));
+      winners.forEach((w) => tx.update(doc(db, "players", w), { titles: arrayUnion(d.title) }));
+      tx.update(ref, { status: "closed", counts, winners, closedAt: Date.now() });
+      return { d, winners, max, majority };
+    });
+  } catch (e) {
+    return toast(e.message);
+  }
+  const { d, winners, max, majority } = res;
+  const wn = winners.map(nameOf).join(" & ");
+  await chatSystem(`🗳️ Wer würde am ehesten ${d.q} → ${wn} (${max} Stimmen) ist jetzt „${d.title}“ 🏅. Mehrheit getroffen: +1 für ${majority.map(nameOf).join(", ") || "niemanden"}`, "poll");
+  await log({ who: wn, text: `bekommt den Titel „${d.title}“ 🏅` });
+};
+
+function renderTitles() {
+  const withT = boardDocs.filter((p) => (p.titles || []).length);
+  $("#titles").innerHTML = withT.length
+    ? withT.map((p) => `<li><b>${esc(p.name)}</b>: ${p.titles.map((t) => `<span class="title-chip">${esc(t)}</span>`).join(" ")}</li>`).join("")
+    : '<li class="muted small">Noch keine Titel. Spiele → Wer würde?</li>';
+}
+
+// ---------- Rundenkasse ----------
+let rounds = [];
+const euro = (n) => n.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+function kasseStats() {
+  return boardDocs.map((p) => {
+    const mine = rounds.filter((r) => r.byId === p.id);
+    return { id: p.id, name: p.name, count: mine.length, sum: mine.reduce((a, r) => a + (r.amount || 0), 0) };
+  });
+}
+function nextPayer() {
+  const st = kasseStats();
+  if (!st.length) return null;
+  return st.sort((a, b) => a.count - b.count || a.sum - b.sum || a.name.localeCompare(b.name))[0];
+}
+function renderKasse() {
+  const nx = nextPayer();
+  $("#kasse-next").textContent = nx ? `${nx.name}${nx.id === meId ? " (du!) 🫵" : " 🫵"}` : "–";
+  $("#kasse-stats").innerHTML = kasseStats()
+    .sort((a, b) => b.count - a.count || b.sum - a.sum)
+    .map((r) => `<tr class="${r.id === meId ? "me" : ""}"><td>${esc(r.name)}</td><td>${r.count}</td><td>${r.sum ? euro(r.sum) : "–"}</td></tr>`)
+    .join("");
+  const ul = $("#kasse-list");
+  ul.innerHTML = rounds.length ? "" : '<li class="muted small">Noch keine Runde bezahlt.</li>';
+  rounds.slice(0, 40).forEach((r) => {
+    const li = document.createElement("li");
+    li.innerHTML = `🍺 <b>${esc(r.byName)}</b> ${r.amount ? euro(r.amount) : ""} ${r.note ? "· " + esc(r.note) : ""}
+      <div class="time">${new Date(r.at).toLocaleString("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</div>`;
+    if (r.byId === meId) {
+      const b = document.createElement("button");
+      b.className = "undo";
+      b.textContent = "↩︎ löschen";
+      b.onclick = async () => {
+        if (!window.confirm("Diese Runde wirklich löschen?")) return;
+        const bt = writeBatch(db);
+        bt.delete(doc(db, "rounds", r.id));
+        await bt.commit();
+      };
+      li.appendChild(b);
+    }
+    ul.appendChild(li);
+  });
+}
+$("#kasse-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("#kasse-amount").value.replace(/[^\d,.]/g, "").replace(",", ".");
+  const num = parseFloat(raw);
+  if (raw && (!isFinite(num) || num < 0)) return toast("Betrag bitte als Zahl, z. B. 24,50");
+  const amount = raw ? Math.round(num * 100) / 100 : null;
+  const note = $("#kasse-note").value.trim();
+  await addDoc(collection(db, "rounds"), { byId: meId, byName: me.name, amount: amount || null, note, at: Date.now() });
+  $("#kasse-amount").value = "";
+  $("#kasse-note").value = "";
+  const nx = nextPayer();
+  await chatSystem(`🍺 ${me.name} hat eine Runde geschmissen${amount ? ` (${euro(amount)})` : ""}${note ? ` in ${note}` : ""}. Prost! Als Nächstes ist ${nx ? nx.name : "jemand"} dran 🫵`, "ok");
+  toast("Runde eingetragen 🍺");
+});
+
+// ---------- Unter-Reiter im Spiele-Tab ----------
+document.querySelectorAll("#seg button").forEach((b) =>
+  b.addEventListener("click", () => {
+    document.querySelectorAll("#seg button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll("#tab-spiele .pane").forEach((p) => p.classList.toggle("hidden", p.id !== `pane-${b.dataset.pane}`));
+  })
+);
 
 // ---------- Finale & Admin ----------
 $("#finale").onclick = async () => {
@@ -959,7 +1186,7 @@ $("#reset-form").addEventListener("submit", async (e) => {
     // 2. Alles löschen und so lange wiederholen, bis nichts mehr übrig ist
     for (let round = 0; round < 3; round++) {
       let left = 0;
-      for (const c of ["players", "log", "chat"]) left += await deleteAllIn(c);
+      for (const c of ["players", "log", "chat", "trials", "polls", "rounds"]) left += await deleteAllIn(c);
       const b = writeBatch(db);
       ["state", "imposter", "settings"].forEach((d) => b.delete(doc(db, "game", d)));
       await b.commit();

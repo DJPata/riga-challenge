@@ -1,6 +1,6 @@
 # Riga-Challenge
 
-Web-App für 6 Spieler: Glücksrad mit Aufgaben (3 Stufen), Geheimmissionen, Joker, Bingo, Live-Rangliste und Verlauf. Alles synchron über Firebase.
+Web-App für 6 Spieler: Einarmiger Bandit mit Aufgaben (3 Stufen), Geheimmissionen, Joker, Pflicht-Alarm, Riga-Gericht, „Wer würde am ehesten“, Imposter, Rundenkasse, Chat, Live-Rangliste und Verlauf. Alles synchron über Firebase.
 
 ## Einrichten (ca. 15 Minuten)
 
@@ -51,9 +51,11 @@ Dann `http://localhost:5000` öffnen (zwei Browserfenster = zwei Spieler).
 - **Gemeinsamer Pool:** Jede gezogene Aufgabe ist für alle verbraucht. Ist ein Topf leer, wird er neu gemischt.
 - **Geheimmissionen** landen in „Meine Geheimmissionen“ und werden später aufgelöst. Die anderen sehen im Verlauf nur, dass du eine hast.
 - **Joker** gelten sofort und stehen im Verlauf.
-- **Bingo:** Jeder hat eine eigene gemischte 5×5-Karte. Jede volle Reihe gibt +2 Punkte.
+- **Riga-Gericht** (Spiele → Gericht): Jeder kann jemanden anklagen (Schnellwahl oder eigener Vorwurf, eine offene Anklage pro Person). Die übrigen Spieler sind Geschworene. Urteil, wenn mindestens die Hälfte abgestimmt hat. Schuldig: Angeklagter −1 und Strafshot. Freispruch (auch bei Gleichstand): Ankläger −1 und Strafshot.
+- **Wer würde am ehesten …?** (Spiele → Wer würde?): 42 Fragen. Alle stimmen geheim ab, dann wird aufgedeckt. Wer mit der Mehrheit stimmt: +1. Der Gewinner bekommt einen Ehrentitel (stehen unter Punkte → 🏅 Ehrentitel). Fragen in `tasks.js` bei `WHO_WOULD`.
+- **Rundenkasse** (Kasse): „Ich hab eine Runde bezahlt“ mit optionalem Betrag und Ort. Zeigt Runden und Summe pro Person und wer als Nächstes dran ist (wenigste Runden, dann kleinste Summe). Eigene Einträge lassen sich löschen.
 - **Finale:** In der Rangliste zieht der Letzte seine Verlierer-Aufgabe.
-- **Imposter:** Im Tab *Imposter* treten alle Mitspieler der Runde bei (mind. 3). Sobald einer startet, ist die Runde zu. Alle sehen den gleichen Begriff (Lettland, Weihnachten oder Männerausflug), nur der Imposter nicht. Begriff durch Gedrückthalten aufdecken, reihum ein Wort sagen, dann abstimmen. Gefangen: alle anderen +2, errät der Imposter danach das Wort: er +2. Entkommen: Imposter +5.
+- **Imposter:** Unter *Spiele → Imposter* treten alle Mitspieler der Runde bei (mind. 3). Sobald einer startet, ist die Runde zu. Alle sehen den gleichen Begriff (Lettland, Weihnachten oder Männerausflug), nur der Imposter nicht. Begriff durch Gedrückthalten aufdecken, reihum ein Wort sagen, dann abstimmen. Gefangen: alle anderen +2, errät der Imposter danach das Wort: er +2. Entkommen: Imposter +5.
 - **Chat:** Gruppen-Chat mit Zähler für ungelesene Nachrichten. Wer eine Aufgabe oder Geheimmission schafft, verweigert oder die Zeit verpennt, wird automatisch im Chat gemeldet (grün, gelb oder rot umrandet).
 - **Benachrichtigungen:** Punkte der anderen und neue Chat-Nachrichten erscheinen als Hinweis. Unter *Punkte* lassen sich System-Benachrichtigungen erlauben (funktionieren, solange die App im Hintergrund offen ist; auf dem iPhone nur, wenn die App über „Zum Home-Bildschirm“ installiert ist).
 - **Admin:** Spieler wechseln, Testmodus (keine Wartezeit) und Zurücksetzen mit Code (Standard: `1012`, änderbar oben bei `RESET_CODE` in `app.js`). Das Zurücksetzen meldet alle Geräte ab und löscht Spieler, Punkte, Aufgaben, Chat, Verlauf und Imposter. Vor der Reise den Testmodus wieder ausschalten!

@@ -232,3 +232,47 @@ input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var
 .chat li.system.alarm { border-color: var(--gold); border-style: solid; font-weight: 700; }
 .test-banner { background: repeating-linear-gradient(45deg, #2a2f3b 0 10px, #232733 10px 20px); border: 1px dashed var(--gold);
   color: var(--gold); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; font-size: .78rem; font-weight: 700; text-align: center; }
+
+/* Spiele: Unter-Reiter */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 4px; margin: 4px 0 14px; position: sticky; top: 0; z-index: 3; }
+.seg button { background: none; border: 0; color: var(--muted); font: inherit; font-weight: 700; font-size: .85rem;
+  padding: 10px 4px; border-radius: 9px; cursor: pointer; }
+.seg button.on { background: var(--red); color: var(--text); }
+.btn.wide { width: 100%; margin-top: 8px; }
+h2.sub { font-size: 1.1rem; margin: 18px 0 6px; }
+select { width: 100%; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); padding: 13px;
+  border-radius: 12px; font: inherit; font-size: 1rem; margin: 8px 0; }
+#trial-form input { width: 100%; }
+.chips.quick { margin: 4px 0 8px; gap: 6px; }
+.chips.quick .chip { padding: 6px 10px; font-size: .78rem; font-weight: 600; }
+.trial { border-color: var(--gold); }
+.charge { font-size: 1.05rem; font-style: italic; color: var(--gold); margin: -6px 0 12px; }
+
+/* Umfrage-Balken */
+.bars { display: grid; gap: 6px; margin-top: 8px; }
+.bar-row { display: grid; grid-template-columns: 90px 1fr 24px; align-items: center; gap: 8px; font-size: .9rem; }
+.bar-row .bn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-row .bt { height: 12px; background: var(--surface-2); border-radius: 6px; overflow: hidden; }
+.bar-row .bt i { display: block; height: 100%; background: var(--muted); border-radius: 6px; }
+.bar-row.win .bt i { background: var(--gold); }
+.bar-row.win .bn { font-weight: 800; color: var(--gold); }
+.bar-row .bc { text-align: right; font-weight: 700; }
+
+/* Ehrentitel */
+.titles { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
+.title-chip { display: inline-block; background: var(--surface-2); border: 1px solid var(--gold); color: var(--gold);
+  border-radius: 999px; padding: 2px 9px; font-size: .75rem; font-weight: 700; margin: 2px 0; }
+
+/* Rundenkasse */
+.next-card { text-align: center; border-color: var(--gold); }
+.next-name { font-size: 1.8rem; font-weight: 800; margin: 4px 0 0; color: var(--gold); }
+.kasse-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.kasse-row input { min-width: 0; }
+.kasse-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.kasse-table th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 6px 8px; }
+.kasse-table td { padding: 10px 8px; border-top: 1px solid var(--line); }
+.kasse-table th:not(:first-child), .kasse-table td:not(:first-child) { text-align: right; }
+.kasse-table tr.me td { font-weight: 700; }
+.undo { background: none; border: 0; color: var(--muted); font: inherit; font-size: .75rem; text-decoration: underline; padding: 4px 0; cursor: pointer; }
+.chat li.system.trial, .chat li.system.poll { border-color: var(--gold); }

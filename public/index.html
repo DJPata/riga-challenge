@@ -91,17 +91,54 @@
       </div>
     </div>
 
-    <!-- Bingo -->
-    <div id="tab-bingo" class="tab hidden">
-      <h2>Bingo</h2>
-      <p class="muted">Tipp ein Feld an, wenn es passiert. Jede volle Reihe: +2 Punkte.</p>
-      <div id="bingo-grid" class="bingo"></div>
-      <p class="muted small">Reihen: <strong id="bingo-lines">0</strong></p>
-    </div>
+    <!-- Spiele: Gericht, Wer würde am ehesten, Imposter -->
+    <div id="tab-spiele" class="tab hidden">
+      <div class="seg" id="seg">
+        <button data-pane="gericht" class="on">⚖️ Gericht</button>
+        <button data-pane="umfrage">🗳️ Wer würde?</button>
+        <button data-pane="imposter">🕵️ Imposter</button>
+      </div>
 
-    <!-- Imposter -->
-    <div id="tab-imposter" class="tab hidden">
-      <h2>Imposter</h2>
+      <!-- Riga-Gericht -->
+      <div id="pane-gericht" class="pane">
+        <div class="card">
+          <p class="eyebrow">⚖️ Anklage erheben</p>
+          <form id="trial-form">
+            <select id="trial-accused" required></select>
+            <div class="chips quick" id="trial-quick"></div>
+            <input id="trial-charge" placeholder="Vorwurf, z. B. „hat Englisch geredet“" maxlength="120" autocomplete="off" required>
+            <button class="btn primary wide" type="submit">Anklagen</button>
+          </form>
+          <p class="muted small">Die anderen stimmen ab. Schuldig: Angeklagter −1 Punkt und Strafshot. Freispruch: Ankläger −1 Punkt und Strafshot. Bei Gleichstand: Freispruch.</p>
+        </div>
+        <div id="trial-open"></div>
+        <h2 class="sub">Letzte Urteile</h2>
+        <ul id="trial-done" class="feed"></ul>
+      </div>
+
+      <!-- Wer würde am ehesten -->
+      <div id="pane-umfrage" class="pane hidden">
+        <div id="poll-open" class="card hidden">
+          <p class="eyebrow">🗳️ Wer würde am ehesten …</p>
+          <p id="poll-q" class="task-text"></p>
+          <div id="poll-options" class="vote-list"></div>
+          <p class="muted small" id="poll-count"></p>
+          <button class="btn primary wide" id="poll-reveal">Aufdecken</button>
+        </div>
+        <div id="poll-none" class="card hidden">
+          <p class="eyebrow">🗳️ Wer würde am ehesten …?</p>
+          <p class="muted">Eine Frage, alle stimmen anonym ab, dann wird aufgedeckt. Wer mit der Mehrheit liegt: +1 Punkt. Der Gewinner bekommt den Titel.</p>
+          <button class="btn primary wide" id="poll-new">Neue Frage ziehen</button>
+        </div>
+        <div id="poll-last" class="card hidden">
+          <p class="eyebrow">Letztes Ergebnis</p>
+          <p id="poll-last-q" class="muted"></p>
+          <div id="poll-last-bars" class="bars"></div>
+        </div>
+      </div>
+
+      <!-- Imposter -->
+      <div id="pane-imposter" class="pane hidden">
 
       <div id="imp-lobby" class="card hidden">
         <p class="eyebrow">Lobby · Runde <span id="imp-round">1</span></p>
@@ -160,6 +197,30 @@
           <li>Imposter entkommt: Er bekommt +5.</li>
         </ul>
       </details>
+      </div>
+    </div>
+
+    <!-- Rundenkasse -->
+    <div id="tab-kasse" class="tab hidden">
+      <h2>Rundenkasse</h2>
+      <div class="card next-card">
+        <p class="eyebrow">Als Nächstes zahlt</p>
+        <p id="kasse-next" class="next-name">–</p>
+      </div>
+      <form id="kasse-form" class="card">
+        <p class="eyebrow">🍺 Runde bezahlt</p>
+        <div class="kasse-row">
+          <input id="kasse-amount" type="text" inputmode="decimal" placeholder="Betrag € (optional)" autocomplete="off">
+          <input id="kasse-note" placeholder="Wo? (optional)" maxlength="40" autocomplete="off">
+        </div>
+        <button class="btn primary wide" type="submit">🍺 Ich hab eine Runde bezahlt</button>
+      </form>
+      <table class="kasse-table">
+        <thead><tr><th>Spieler</th><th>Runden</th><th>Summe</th></tr></thead>
+        <tbody id="kasse-stats"></tbody>
+      </table>
+      <h2 class="sub">Verlauf</h2>
+      <ul id="kasse-list" class="feed"></ul>
     </div>
 
     <!-- Chat -->
@@ -176,6 +237,10 @@
     <div id="tab-board" class="tab hidden">
       <h2>Rangliste</h2>
       <ol id="board" class="board"></ol>
+      <div class="card" id="titles-card">
+        <p class="eyebrow">🏅 Ehrentitel</p>
+        <ul id="titles" class="titles"></ul>
+      </div>
       <div class="card">
         <p class="eyebrow">Finale</p>
         <p class="muted">Am letzten Abend: Der Letzte zieht seine Verlierer-Aufgabe.</p>
@@ -197,7 +262,7 @@
         <button class="btn" id="alarm-toggle">Pflicht-Alarm: aus</button>
         <button class="btn" id="alarm-test">Alarm testen (nur hier)</button>
         <div class="reset-box">
-          <p class="muted small">Alles zurücksetzen: löscht alle Spieler, Punkte, Aufgaben, Chat, Verlauf und Imposter-Runden. Alle Geräte werden abgemeldet.</p>
+          <p class="muted small">Alles zurücksetzen: löscht alle Spieler, Punkte, Aufgaben, Chat, Verlauf, Gericht, Umfragen, Rundenkasse und Imposter-Runden. Alle Geräte werden abgemeldet.</p>
           <form id="reset-form" class="reset-form">
             <input id="reset-code" placeholder="Reset-Code" inputmode="numeric" autocomplete="off">
             <button class="btn danger" type="submit" id="reset">Zurücksetzen</button>
@@ -210,8 +275,8 @@
 
   <nav class="tabbar">
     <button data-tab="wheel" class="active">🎰<span>Aufgabe</span></button>
-    <button data-tab="bingo">🎯<span>Bingo</span></button>
-    <button data-tab="imposter">🕵️<span>Imposter</span></button>
+    <button data-tab="spiele">🎲<span>Spiele</span></button>
+    <button data-tab="kasse">🍺<span>Kasse</span></button>
     <button data-tab="chat">💬<span>Chat</span><i class="badge hidden" id="chat-badge"></i></button>
     <button data-tab="board">🏆<span>Punkte</span></button>
   </nav>
