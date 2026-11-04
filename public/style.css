@@ -213,3 +213,20 @@ input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var
 .update-banner { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
   z-index: 20; background: var(--gold); color: var(--bg); border: 0; border-radius: 999px; padding: 10px 18px;
   font: inherit; font-weight: 800; box-shadow: 0 4px 18px #0009; cursor: pointer; max-width: calc(100vw - 32px); }
+
+/* Pflicht-Alarm */
+.alarm-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px;
+  margin-bottom: 12px; font-weight: 700; font-size: .9rem; text-align: center; font-variant-numeric: tabular-nums; }
+.alarm-card.active { background: var(--red); border-color: var(--gold); animation: blink 1s steps(2) infinite; }
+.alarm-card.done { border-color: var(--ok); color: var(--ok); }
+.alarm-overlay { position: fixed; inset: 0; z-index: 30; background: #000c; display: flex; align-items: center;
+  justify-content: center; padding: 16px; }
+.alarm-box { background: var(--surface); border: 3px solid var(--gold); border-radius: 20px; padding: 24px 20px;
+  max-width: 380px; width: 100%; text-align: center; animation: pop .4s ease-out; }
+.alarm-box h2 { font-size: 2rem; margin: 6px 0; }
+.alarm-box p { color: var(--muted); margin: 0 0 18px; }
+.alarm-box .btn { width: 100%; margin-top: 8px; }
+.alarm-icon { font-size: 4rem; animation: ring .5s ease-in-out infinite alternate; }
+@keyframes ring { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes pop { from { transform: scale(.8); opacity: 0; } }
+.chat li.system.alarm { border-color: var(--gold); border-style: solid; font-weight: 700; }

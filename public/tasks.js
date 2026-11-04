@@ -1,12 +1,12 @@
 // Aufgabenpool Riga-Challenge
 // Stufen: 1 = Leicht, 3 = Mittel, 5 = Hardcore (Zahl = Punkte)
-// Eine Aufgabe ist ein Text oder { t: "Text", where: ["bar", "markt", "stadt", "husky"] }
+// Eine Aufgabe ist ein Text oder { t: "Text", where: ["bar", "markt", "stadt", "outdoor"] }
 
 // Orte: welche Kategorien das Rad dort zeigt (die erste kommt doppelt aufs Rad)
 export const LOCATIONS = [
   { id: "bar", name: "Bar", icon: "🍺", cats: ["bar", "lettland", "geheim", "gruppe"] },
   { id: "markt", name: "Weihnachtsmarkt", icon: "🎄", cats: ["markt", "lettland", "geheim", "gruppe"] },
-  { id: "husky", name: "Husky-Tour", icon: "🐺", cats: ["husky", "geheim", "gruppe"] },
+  { id: "outdoor", name: "Outdoor", icon: "🌲", cats: ["outdoor", "geheim", "gruppe"] },
   { id: "stadt", name: "Stadt", icon: "🏰", cats: ["stadt", "lettland", "geheim", "gruppe"] },
   { id: "alles", name: "Alles", icon: "🎲", cats: null },
 ];
@@ -88,35 +88,35 @@ export const CATEGORIES = [
     },
   },
   {
-    id: "husky", name: "Husky-Tour", short: "Husky", icon: "🐺", color: "#0369a1",
+    id: "outdoor", name: "Outdoor", short: "Outdoor", icon: "🌲", color: "#0369a1",
     tasks: {
       1: [
-        "Gib einem Husky einen Spitznamen.",
-        "Mach das dramatischste Actionfoto auf dem Schlitten.",
-        "Lerne die Namen von 3 Huskys.",
-        "Heul mit den Huskys um die Wette.",
-        "Mach ein Selfie mit dem flauschigsten Husky.",
-        "Streichle 5 verschiedene Huskys.",
-        "Mach ein Foto, auf dem du genauso guckst wie ein Husky.",
-        "Ruf beim Losfahren laut „Mush!“.",
+        "Gib dem ersten Tier, das du heute draußen triffst, einen Spitznamen.",
+        "Mach das dramatischste Actionfoto des Tages.",
+        "Mach einen Schneeengel (oder Pfützenengel, falls kein Schnee).",
+        "Heul 10 Sekunden wie ein Wolf.",
+        "Mach ein Selfie mit dem flauschigsten Lebewesen in der Nähe.",
+        "Wirf einen Schneeball (oder Tannenzapfen) und triff einen Baum.",
+        "Mach ein Foto, auf dem du genauso guckst wie ein Tier in deiner Nähe.",
+        "Ruf beim nächsten Losgehen oder Losfahren laut „Auf geht's!“.",
       ],
       3: [
-        "Stell einen Husky der Gruppe vor wie bei einer Hochzeitsrede.",
-        "Fahr die Strecke mit durchgehendem Kampfschrei.",
-        "Frag den Musher nach seinem verrücktesten Erlebnis und erzähl es abends nach.",
-        "Kommentiere die Schlittenfahrt live wie Formel 1 (gefilmt).",
+        "Stell das nächste Tier, das du siehst, der Gruppe vor wie bei einer Hochzeitsrede.",
+        "Leg die nächsten 200 Meter mit durchgehendem Kampfschrei zurück.",
+        "Frag einen Guide oder Einheimischen nach seinem verrücktesten Erlebnis und erzähl es abends nach.",
+        "Kommentiere die nächste Fahrt (Bus, Taxi oder was auch immer) live wie Formel 1 (gefilmt).",
         "Mach einen Fotoshoot im Stil eines Polarforschers.",
-        "Schlitten-Wette: Tipp, welcher Husky am lautesten bellt. Liegst du richtig, trinken die anderen.",
-        "Erklär der Gruppe 1 Minute lang, warum du der perfekte Musher wärst.",
-        "Lass dir vom Musher ein Kommando beibringen und wende es an.",
+        "Wette: Tipp, wer aus der Gruppe als Erstes über Kälte jammert. Liegst du richtig, trinken die anderen.",
+        "Erklär der Gruppe 1 Minute lang, warum du in der Wildnis am längsten überleben würdest.",
+        "Lass dir von einem Guide oder Einheimischen ein Kommando oder einen Trick beibringen und wende ihn an.",
       ],
       5: [
         "Lass dich für ein Foto komplett in den Schnee fallen.",
-        "Halte 1 Minute lang eine Laudatio auf den Leithund.",
-        "Dreh ein Musikvideo mit Huskys (mindestens 30 Sekunden).",
-        "Lass dich mit dem ganzen Gespann fotografieren und posiere wie ein König.",
-        "Bitte den Musher, ein Stück selbst zu lenken.",
-        "Mach 10 Liegestütze im Schnee, während ein Husky zuschaut.",
+        "Halte 1 Minute lang eine Laudatio auf den mutigsten Mitspieler des Tages.",
+        "Dreh ein 30-Sekunden-Musikvideo draußen, mit der ganzen Gruppe im Bild.",
+        "Lass dich mit der Gruppe fotografieren und posiere wie ein König auf seinem Thron.",
+        "Überrede einen Guide, dich etwas selbst machen zu lassen, das normalerweise nur er macht.",
+        "Mach 10 Liegestütze im Schnee (oder auf kaltem Boden).",
       ],
     },
   },
@@ -259,7 +259,7 @@ export const JOKER = {
 };
 
 export const BINGO = [
-  "Jemand bestellt Black Balsam", "Husky leckt jemandem das Gesicht", "Jemand rutscht auf dem Eis aus",
+  "Jemand bestellt Black Balsam", "Ein Tier schleckt jemanden ab", "Jemand rutscht auf dem Eis aus",
   "Fremder macht ein Gruppenfoto", "Jemand verliert etwas", "„Nur noch ein Bier“",
   "Barkeeper spricht Deutsch", "Jemand schläft im Taxi oder in der Bar ein", "Absurdes Souvenir gekauft",
   "Es schneit", "Jemand wird nach dem Weg gefragt", "Jemand singt spontan",
@@ -303,7 +303,7 @@ export const IMPOSTER_WORDS = {
   ],
   "Männerausflug": [
     "Kater", "Bierpong", "Kneipentour", "Shot", "Hotelzimmer", "Schnarchen", "Döner um 3 Uhr",
-    "Gruppenfoto", "Billigflieger", "Handgepäck", "Taxi", "Husky", "Karaoke", "Türsteher",
+    "Gruppenfoto", "Billigflieger", "Handgepäck", "Taxi", "Schneeballschlacht", "Karaoke", "Türsteher",
     "Rechnung teilen", "Trinkspiel", "Wecker", "Kopfschmerztablette", "Fußball", "Zigarre",
     "Whatsapp-Gruppe", "Bauchtasche", "Bartender", "Stadionbesuch", "Frühstücksbuffet", "Rundenbier",
     "Peinliches Video", "Flughafenbier", "Jägermeister", "Mitternachtssnack",

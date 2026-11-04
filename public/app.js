@@ -25,6 +25,7 @@ let testMode = false;         // im Admin-Bereich umschaltbar: keine Wartezeit
 
 // ---------- Standort (pro Spieler) ----------
 let loc = null;
+const normLoc = (l) => (l === "husky" ? "outdoor" : l) || null; // alter Name
 const taskText = (t) => (typeof t === "string" ? t : t.t);
 const fitsLoc = (t) => !loc || loc === "alles" || typeof t === "string" || !t.where || t.where.includes(loc);
 function catsFor(locId) {
@@ -172,8 +173,8 @@ function listenGame() {
     onSnapshot(doc(db, "players", meId), (s) => {
       if (!s.exists()) return switchPlayer();
       me = s.data();
-      if ((me.loc || null) !== loc) {
-        loc = me.loc || null;
+      if (normLoc(me.loc) !== loc) {
+        loc = normLoc(me.loc);
         renderLocGrid();
         if (!spinning) resetReels();
       }
@@ -212,6 +213,8 @@ function listenGame() {
     }),
     onSnapshot(doc(db, "game", "settings"), (s) => {
       testMode = !!(s.exists() && s.data().testMode);
+      alarmOn = !!(s.exists() && s.data().alarm);
+      $("#alarm-toggle").textContent = alarmOn ? "Pflicht-Alarm: AN" : "Pflicht-Alarm: aus";
       $("#test-mode").textContent = testMode ? "Testmodus: AN (keine Wartezeit)" : "Testmodus: aus";
       tick();
     }),
@@ -461,7 +464,7 @@ const mmss = (ms) => {
 };
 function playerStatus(p) {
   const now = Date.now();
-  const L = LOCATIONS.find((l) => l.id === p.loc);
+  const L = LOCATIONS.find((l) => l.id === normLoc(p.loc));
   const where = L ? `${L.icon} ${L.name}` : "📍 kein Ort";
   if (p.current) return `${where} · ⏳ Aufgabe läuft, noch ${Math.max(0, Math.ceil((p.current.deadline - now) / MIN))} min`;
   const wait = (p.lastDrawAt || 0) + COOLDOWN_MINUTES * MIN - now;
@@ -524,6 +527,8 @@ function slotState() {
   if (!me) return { ok: false, msg: "" };
   if (!loc) return { ok: false, msg: "Wähle zuerst oben, wo du bist." };
   if (me.current) return { ok: false, msg: "Erst die laufende Aufgabe abschließen." };
+  const al = activeAlarm();
+  if (al && (me.lastDrawAt || 0) < al) return { ok: true, msg: "⏰ Pflicht-Alarm! Jetzt ziehen.", alarm: true };
   const wait = (me.lastDrawAt || 0) + COOLDOWN_MINUTES * MIN - Date.now();
   if (!testMode && wait > 0) return { ok: false, msg: `☕ Nächste Aufgabe in ${mmss(wait)}`, wait: true };
   return { ok: true, msg: "Bereit! Zieh am Hebel." };
@@ -652,6 +657,115 @@ async function resolveCurrent(res) {
 }
 document.querySelectorAll("[data-res]").forEach((b) => b.addEventListener("click", () => resolveCurrent(b.dataset.res)));
 
+// ---------- Pflicht-Alarm: jede Stunde zu einer zufälligen Minute ----------
+const ALARM_WINDOW_MIN = 15;                          // so lange hat man nach dem Alarm Zeit zum Ziehen
+const alarmHourOk = (h) => h >= 10 || h < 2;          // nur zwischen 10:00 und 01:59 Uhr (Uhrzeit des Handys)
+const HOUR = 60 * MIN;
+let alarmOn = false;                                  // im Admin-Bereich für alle umschaltbar
+
+// Zufällige, aber auf allen Handys gleiche Alarmzeit innerhalb einer Stunde
+function alarmAt(hourIdx) {
+  let x = (hourIdx * 2654435761) >>> 0;
+  x ^= x >>> 16; x = Math.imul(x, 2246822519) >>> 0;
+  x ^= x >>> 13; x = Math.imul(x, 3266489917) >>> 0;
+  x = (x ^ (x >>> 16)) >>> 0; // immer positiv
+  return hourIdx * HOUR + (x % 3600) * 1000;
+}
+const alarmAllowed = (t) => alarmHourOk(new Date(t).getHours());
+function lastAlarm(now = Date.now()) {
+  for (let h = Math.floor(now / HOUR), k = 0; k < 30; k++, h--) {
+    const t = alarmAt(h);
+    if (t <= now && alarmAllowed(t)) return t;
+  }
+  return null;
+}
+function nextAlarm(now = Date.now()) {
+  for (let h = Math.floor(now / HOUR), k = 0; k < 30; k++, h++) {
+    const t = alarmAt(h);
+    if (t > now && alarmAllowed(t)) return t;
+  }
+  return null;
+}
+function activeAlarm(now = Date.now()) {
+  if (!alarmOn) return null;
+  const t = lastAlarm(now);
+  return t && now - t < ALARM_WINDOW_MIN * MIN ? t : null;
+}
+
+// Ton (Web Audio). iPhone: erst nach einer Berührung erlaubt, und nicht im Lautlos-Modus.
+let audioCtx = null;
+function unlockAudio() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch {}
+}
+document.addEventListener("pointerdown", unlockAudio, { passive: true });
+function beepSeries(offset) {
+  const t0 = audioCtx.currentTime + offset;
+  for (let i = 0; i < 6; i++) {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "square";
+    o.frequency.value = i % 2 ? 660 : 880;
+    const t = t0 + i * 0.25;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t);
+    o.stop(t + 0.24);
+  }
+}
+function playAlarm() {
+  unlockAudio();
+  if (!audioCtx) return;
+  try { beepSeries(0); beepSeries(2); beepSeries(4); } catch {}
+}
+
+function fireAlarm(at, test = false) {
+  playAlarm();
+  if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 800]);
+  $("#alarm-overlay").classList.remove("hidden");
+  if (test) return;
+  notify("⏰ Pflicht-Alarm", `Alle müssen jetzt eine Aufgabe ziehen! ${ALARM_WINDOW_MIN} Minuten Zeit.`);
+  // eine Chat-Meldung pro Alarm (feste ID, egal wie viele Handys sie schreiben)
+  setDoc(doc(db, "chat", `alarm-${at}`), {
+    byId: "system", who: "", system: true, kind: "alarm", at: serverTimestamp(),
+    text: `⏰ Pflicht-Alarm! Alle ziehen jetzt eine Aufgabe – ${ALARM_WINDOW_MIN} Minuten Zeit, Pause wird übersprungen.`,
+  }).catch(() => {});
+}
+$("#alarm-go").onclick = () => {
+  $("#alarm-overlay").classList.add("hidden");
+  document.querySelector('.tabbar [data-tab="wheel"]').click();
+};
+$("#alarm-close").onclick = () => $("#alarm-overlay").classList.add("hidden");
+
+function checkAlarm() {
+  const card = $("#alarm-card");
+  if (!alarmOn) return card.classList.add("hidden");
+  card.classList.remove("hidden");
+  const now = Date.now();
+  const al = activeAlarm(now);
+  if (al) {
+    let seen = null;
+    try { seen = localStorage.getItem("riga-alarm"); } catch {}
+    if (seen !== String(al)) {
+      try { localStorage.setItem("riga-alarm", String(al)); } catch {}
+      fireAlarm(al);
+    }
+    const done = (me.lastDrawAt || 0) >= al;
+    card.className = "alarm-card " + (done ? "done" : "active");
+    $("#alarm-label").textContent = done
+      ? "✅ Pflicht-Aufgabe gezogen"
+      : `⏰ PFLICHT-ALARM! Jetzt ziehen – noch ${mmss(al + ALARM_WINDOW_MIN * MIN - now)}`;
+  } else {
+    const nx = nextAlarm(now);
+    card.className = "alarm-card";
+    $("#alarm-label").textContent = nx ? `⏰ Nächster Pflicht-Alarm in ${mmss(nx - now)}` : "";
+  }
+}
+
 // ---------- Sekundentakt: Countdown, Wartezeit, Ablauf ----------
 function tick() {
   if (!me) return;
@@ -664,6 +778,7 @@ function tick() {
     $("#task-card").classList.toggle("urgent", left < 10 * MIN);
     if (left <= 0) resolveCurrent("expired");
   }
+  checkAlarm();
   const st = slotState();
   $("#pull").disabled = !st.ok || spinning;
   $("#slot-status").textContent = spinning ? "Rattert…" : st.msg;
@@ -775,6 +890,8 @@ function switchPlayer() {
 }
 $("#switch-player").onclick = switchPlayer;
 $("#test-mode").onclick = () => setDoc(doc(db, "game", "settings"), { testMode: !testMode }, { merge: true });
+$("#alarm-toggle").onclick = () => setDoc(doc(db, "game", "settings"), { alarm: !alarmOn }, { merge: true });
+$("#alarm-test").onclick = () => fireAlarm(Date.now(), true);
 
 // ---------- Alles zurücksetzen (mit Code) ----------
 const RESET_CODE = "1012"; // hier ändern, wenn ihr einen anderen Code wollt

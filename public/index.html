@@ -44,6 +44,7 @@
   <main>
     <!-- Rad -->
     <div id="tab-wheel" class="tab">
+      <div id="alarm-card" class="alarm-card hidden"><span id="alarm-label"></span></div>
       <div id="task-card" class="card hidden">
         <div class="task-head">
           <p class="eyebrow" id="task-meta"></p>
@@ -192,6 +193,8 @@
         <summary>Admin</summary>
         <button class="btn" id="switch-player">Spieler wechseln</button>
         <button class="btn" id="test-mode">Testmodus: aus</button>
+        <button class="btn" id="alarm-toggle">Pflicht-Alarm: aus</button>
+        <button class="btn" id="alarm-test">Alarm testen (nur hier)</button>
         <div class="reset-box">
           <p class="muted small">Alles zurücksetzen: löscht alle Spieler, Punkte, Aufgaben, Chat, Verlauf und Imposter-Runden. Alle Geräte werden abgemeldet.</p>
           <form id="reset-form" class="reset-form">
@@ -214,6 +217,15 @@
 </section>
 
 <button id="update-banner" class="update-banner hidden">🔄 Update da – tippen zum Laden</button>
+<div id="alarm-overlay" class="alarm-overlay hidden">
+  <div class="alarm-box">
+    <div class="alarm-icon">⏰</div>
+    <h2>Pflicht-Alarm!</h2>
+    <p>Alle müssen jetzt eine Aufgabe ziehen. Ihr habt 15 Minuten, die Pause wird übersprungen.</p>
+    <button class="btn primary pull" id="alarm-go">🎰 Zur Aufgabe</button>
+    <button class="btn" id="alarm-close">Schließen</button>
+  </div>
+</div>
 <div id="toast" class="toast hidden"></div>
 
 <script type="module" src="app.js"></script>

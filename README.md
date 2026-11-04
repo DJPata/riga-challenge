@@ -40,10 +40,11 @@ Dann `http://localhost:5000` öffnen (zwei Browserfenster = zwei Spieler).
 
 ## So funktioniert's
 
-- **Schritt 1 – Wo bist du?** Jeder wählt über die Kacheln seinen Ort: Bar, Weihnachtsmarkt, Husky-Tour, Stadt oder Alles. Ohne Ort kann man nicht ziehen.
+- **Schritt 1 – Wo bist du?** Jeder wählt über die Kacheln seinen Ort: Bar, Weihnachtsmarkt, Outdoor, Stadt oder Alles. Ohne Ort kann man nicht ziehen.
 - **Schritt 2 – Einarmiger Bandit:** Drei Walzen: Kategorie (passend zum Ort, die Ortskategorie kommt doppelt so oft), Stufe (Leicht 45 %, Mittel 35 %, Hardcore 20 %) und Bonus (Normal, Doppelte Punkte oder zusätzlich ein Joker).
 - **Countdown:** Für jede Aufgabe hat man 60 Minuten. Läuft die Zeit ab, zählt das wie Verweigern (−2, Strafshot). Ab 10 Minuten Restzeit blinkt die Uhr rot.
 - **Wartezeit:** Eine neue Aufgabe gibt es frühestens 30 Minuten nach dem letzten Ziehen. Wer schneller fertig ist, wartet den Rest.
+- **Pflicht-Alarm:** Jede Stunde zu einer zufälligen Minute (auf allen Handys gleich) klingelt es: Ton, Vibration (Android), großes Alarmfenster und eine Meldung im Chat. Dann muss jeder innerhalb von 15 Minuten eine Aufgabe ziehen, die Pause wird übersprungen. Oben im Aufgabe-Tab läuft der Countdown zum nächsten Alarm. Aktiv nur zwischen 10:00 und 01:59 Uhr. Einschalten für alle unter *Punkte → Admin → Pflicht-Alarm*. Dort gibt es auch „Alarm testen“ (nur auf dem eigenen Handy). iPhone: Ton nur, wenn das Handy nicht auf lautlos steht und die App offen ist.
 - **Aufgabe abschließen:** Geschafft = volle Punkte, Versucht = halbe Punkte, Verweigert = −2 und Strafshot.
 - **Rangliste:** Zeigt bei jedem Spieler den Ort und ob er gerade eine Aufgabe hat, Pause macht oder bereit ist.
 - **Gemeinsamer Pool:** Jede gezogene Aufgabe ist für alle verbraucht. Ist ein Topf leer, wird er neu gemischt.
@@ -58,4 +59,4 @@ Dann `http://localhost:5000` öffnen (zwei Browserfenster = zwei Spieler).
 
 ## Aufgaben anpassen
 
-Alle Aufgaben stehen in `public/tasks.js`. Einfach Zeilen ergänzen oder löschen und neu deployen. Eine Aufgabe nur für bestimmte Orte schreibt man so: `{ t: "Text", where: ["bar", "markt"] }`. Welche Kategorien an welchem Ort in den Automaten kommen, steht oben in `LOCATIONS`. Zeitlimit und Wartezeit stehen oben in `app.js` (`TASK_MINUTES`, `COOLDOWN_MINUTES`).
+Alle Aufgaben stehen in `public/tasks.js`. Einfach Zeilen ergänzen oder löschen und neu deployen. Eine Aufgabe nur für bestimmte Orte schreibt man so: `{ t: "Text", where: ["bar", "markt"] }`. Welche Kategorien an welchem Ort in den Automaten kommen, steht oben in `LOCATIONS`. Zeitlimit und Wartezeit stehen oben in `app.js` (`TASK_MINUTES`, `COOLDOWN_MINUTES`), die Alarm-Einstellungen bei `ALARM_WINDOW_MIN` und `alarmHourOk`.
