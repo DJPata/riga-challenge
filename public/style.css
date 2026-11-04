@@ -230,3 +230,5 @@ input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var
 @keyframes ring { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
 @keyframes pop { from { transform: scale(.8); opacity: 0; } }
 .chat li.system.alarm { border-color: var(--gold); border-style: solid; font-weight: 700; }
+.test-banner { background: repeating-linear-gradient(45deg, #2a2f3b 0 10px, #232733 10px 20px); border: 1px dashed var(--gold);
+  color: var(--gold); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; font-size: .78rem; font-weight: 700; text-align: center; }

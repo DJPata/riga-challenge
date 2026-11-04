@@ -213,8 +213,10 @@ function listenGame() {
     }),
     onSnapshot(doc(db, "game", "settings"), (s) => {
       testMode = !!(s.exists() && s.data().testMode);
-      alarmOn = !!(s.exists() && s.data().alarm);
-      $("#alarm-toggle").textContent = alarmOn ? "Pflicht-Alarm: AN" : "Pflicht-Alarm: aus";
+      alarmSetting = !!(s.exists() && s.data().alarm);
+      $("#alarm-toggle").textContent = alarmSetting
+        ? "Pflicht-Alarm: AN"
+        : inTestRound() ? "Pflicht-Alarm: AN (Testrunde)" : "Pflicht-Alarm: aus";
       $("#test-mode").textContent = testMode ? "Testmodus: AN (keine Wartezeit)" : "Testmodus: aus";
       tick();
     }),
@@ -661,7 +663,12 @@ document.querySelectorAll("[data-res]").forEach((b) => b.addEventListener("click
 const ALARM_WINDOW_MIN = 15;                          // so lange hat man nach dem Alarm Zeit zum Ziehen
 const alarmHourOk = (h) => h >= 10 || h < 2;          // nur zwischen 10:00 und 01:59 Uhr (Uhrzeit des Handys)
 const HOUR = 60 * MIN;
-let alarmOn = false;                                  // im Admin-Bereich für alle umschaltbar
+let alarmSetting = false;                             // im Admin-Bereich für alle umschaltbar
+
+// Testrunde: bis zu diesem Zeitpunkt ist der Pflicht-Alarm automatisch für alle an
+const TEST_ROUND_END = new Date("2026-11-08T22:00:00+01:00").getTime();
+const inTestRound = () => Date.now() < TEST_ROUND_END;
+const alarmEnabled = () => alarmSetting || inTestRound();
 
 // Zufällige, aber auf allen Handys gleiche Alarmzeit innerhalb einer Stunde
 function alarmAt(hourIdx) {
@@ -687,7 +694,7 @@ function nextAlarm(now = Date.now()) {
   return null;
 }
 function activeAlarm(now = Date.now()) {
-  if (!alarmOn) return null;
+  if (!alarmEnabled()) return null;
   const t = lastAlarm(now);
   return t && now - t < ALARM_WINDOW_MIN * MIN ? t : null;
 }
@@ -743,7 +750,8 @@ $("#alarm-close").onclick = () => $("#alarm-overlay").classList.add("hidden");
 
 function checkAlarm() {
   const card = $("#alarm-card");
-  if (!alarmOn) return card.classList.add("hidden");
+  $("#test-banner").classList.toggle("hidden", !inTestRound());
+  if (!alarmEnabled()) return card.classList.add("hidden");
   card.classList.remove("hidden");
   const now = Date.now();
   const al = activeAlarm(now);
@@ -890,7 +898,7 @@ function switchPlayer() {
 }
 $("#switch-player").onclick = switchPlayer;
 $("#test-mode").onclick = () => setDoc(doc(db, "game", "settings"), { testMode: !testMode }, { merge: true });
-$("#alarm-toggle").onclick = () => setDoc(doc(db, "game", "settings"), { alarm: !alarmOn }, { merge: true });
+$("#alarm-toggle").onclick = () => setDoc(doc(db, "game", "settings"), { alarm: !alarmSetting }, { merge: true });
 $("#alarm-test").onclick = () => fireAlarm(Date.now(), true);
 
 // ---------- Alles zurücksetzen (mit Code) ----------
