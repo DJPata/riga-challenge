@@ -20,7 +20,7 @@
 <!-- Beitreten -->
 <section id="join" class="screen">
   <div class="join-box">
-    <p class="eyebrow">Riga · 10.–13. Dezember</p>
+    <p class="eyebrow">Riga · 3.–6. Dezember</p>
     <h1>Riga-<br>Challenge</h1>
     <p class="muted">Wer bist du?</p>
     <div id="existing-players" class="chips"></div>
@@ -44,6 +44,7 @@
   <main>
     <!-- Rad -->
     <div id="tab-wheel" class="tab">
+      <div id="sim-banner" class="test-banner hidden"></div>
       <div id="test-banner" class="test-banner hidden">🧪 Testrunde bis So, 8.11., 22:00 Uhr · Pflicht-Alarm ist an</div>
       <div id="alarm-card" class="alarm-card hidden"><span id="alarm-label"></span></div>
       <div id="task-card" class="card hidden">
@@ -58,7 +59,7 @@
           <button class="btn" data-res="half">Versucht (½)</button>
           <button class="btn danger" data-res="refuse">Verweigert</button>
         </div>
-        <p class="muted small">60 Minuten Zeit. Verweigert oder Zeit abgelaufen = Strafshot und −2 Punkte. Beweis per Foto oder 2 Zeugen. Neue Aufgabe frühestens 30 Minuten nach dem letzten Ziehen.</p>
+        <p class="muted small">60 Minuten Zeit. Verweigert oder Zeit abgelaufen = Strafshot (beim Axtwerfen 10 Liegestütze) und −2 Punkte. Beweis per Foto oder 2 Zeugen. Neue Aufgabe frühestens 30 Minuten nach dem letzten Ziehen.</p>
       </div>
       <div id="joker-card" class="card hidden">
         <p class="eyebrow">🃏 Joker</p>
@@ -66,9 +67,12 @@
         <button class="btn primary" id="joker-ok">Alles klar</button>
       </div>
 
-      <div class="card">
-        <p class="eyebrow">Schritt 1 · Wo bist du gerade?</p>
+      <div class="card where-card">
+        <p class="eyebrow" id="loc-title">Schritt 1 · Wo bist du gerade?</p>
+        <div id="sched-now" class="hidden"></div>
         <div id="loc-grid" class="loc-grid"></div>
+        <p id="loc-manual-hint" class="muted small">Vor der Reise: Ort selbst wählen. Ab Do, 3.12., 13:00 übernimmt der Reiseplan.</p>
+        <button class="btn wide hidden" id="bar-btn">🍺 Wir sind in einer Bar</button>
       </div>
 
       <div class="card slot-card">
@@ -82,6 +86,11 @@
         <button id="pull" class="btn primary pull">🎰 Ziehen</button>
         <p id="slot-status" class="muted small center"></p>
       </div>
+
+      <details class="card program-card">
+        <summary>📅 Reiseprogramm</summary>
+        <ul id="program" class="program"></ul>
+      </details>
 
 
 
@@ -261,6 +270,9 @@
         <button class="btn" id="test-mode">Testmodus: aus</button>
         <button class="btn" id="alarm-toggle">Pflicht-Alarm: aus</button>
         <button class="btn" id="alarm-test">Alarm testen (nur hier)</button>
+        <label class="sim-label">Zeitplan testen (nur auf diesem Handy):
+          <select id="sim-select"></select>
+        </label>
         <div class="reset-box">
           <p class="muted small">Alles zurücksetzen: löscht alle Spieler, Punkte, Aufgaben, Chat, Verlauf, Gericht, Umfragen, Rundenkasse und Imposter-Runden. Alle Geräte werden abgemeldet.</p>
           <form id="reset-form" class="reset-form">

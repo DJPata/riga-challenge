@@ -40,7 +40,10 @@ Dann `http://localhost:5000` öffnen (zwei Browserfenster = zwei Spieler).
 
 ## So funktioniert's
 
-- **Schritt 1 – Wo bist du?** Jeder wählt über die Kacheln seinen Ort: Bar, Weihnachtsmarkt, Outdoor, Stadt oder Alles. Ohne Ort kann man nicht ziehen.
+- **Reiseplan statt Ortswahl:** Während der Reise (Do 3.12., 13:00 bis So 6.12., 14:30, Riga-Zeit) bestimmt der Zeitplan in `tasks.js` (`SCHEDULE`), welche Aufgaben kommen: Axtwerfen, Altstadt, Weihnachtsmarkt, Husky-Tour (bis zum Start als „Überraschung“ getarnt), Mittagessen, Zentralmarkt, Bars, Freizeit, Finale. Außerhalb der Programmpunkte gelten Stadt-Aufgaben. Mit „🍺 Wir sind in einer Bar“ gibt es 3 Stunden lang Bar-Aufgaben. Vor der Reise wählt man den Ort noch selbst über Kacheln.
+- **Teaser:** Eine Stunde vor Programmpunkten (bei der Husky-Tour zusätzlich am Vorabend) kommt eine Push-Nachricht und eine Chat-Meldung, beim Start eine Startmeldung. Bei Anreise und Abflug sind die Pflicht-Alarme pausiert. Während der Reise laufen die Alarme automatisch.
+- **Axtwerfen:** Strafen sind dort 10 Liegestütze statt Shots.
+- **Zeitplan testen:** *Punkte → Admin → Zeitplan testen* spult die Zeit nur auf dem eigenen Handy vor (nur Ort und Programm, keine Alarme).
 - **Schritt 2 – Einarmiger Bandit:** Drei Walzen: Kategorie (passend zum Ort, die Ortskategorie kommt doppelt so oft), Stufe (Leicht 45 %, Mittel 35 %, Hardcore 20 %) und Bonus (Normal, Doppelte Punkte oder zusätzlich ein Joker).
 - **Countdown:** Für jede Aufgabe hat man 60 Minuten. Läuft die Zeit ab, zählt das wie Verweigern (−2, Strafshot). Ab 10 Minuten Restzeit blinkt die Uhr rot.
 - **Wartezeit:** Eine neue Aufgabe gibt es frühestens 30 Minuten nach dem letzten Ziehen. Wer schneller fertig ist, wartet den Rest.

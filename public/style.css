@@ -276,3 +276,20 @@ select { width: 100%; background: var(--surface-2); border: 1px solid var(--line
 .kasse-table tr.me td { font-weight: 700; }
 .undo { background: none; border: 0; color: var(--muted); font: inherit; font-size: .75rem; text-decoration: underline; padding: 4px 0; cursor: pointer; }
 .chat li.system.trial, .chat li.system.poll { border-color: var(--gold); }
+
+/* Programm & Ort */
+.now-line { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 6px 0 2px; }
+.now-big { font-size: 1.3rem; font-weight: 800; }
+.next-line { margin-top: 8px; font-size: .85rem; color: var(--muted); }
+.next-line b { color: var(--text); }
+#bar-btn.on { background: var(--red); border-color: var(--gold); }
+.program-card summary { cursor: pointer; font-weight: 700; }
+.program { list-style: none; padding: 0; margin: 10px 0 0; }
+.program li { display: grid; grid-template-columns: 96px 1fr; gap: 8px; padding: 7px 0; border-top: 1px solid var(--line); font-size: .88rem; }
+.program li.day { display: block; border: 0; padding: 12px 0 2px; color: var(--gold); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.program li.past { opacity: .45; }
+.program li.now { color: var(--gold); font-weight: 800; }
+.program .pt { font-variant-numeric: tabular-nums; color: var(--muted); }
+.program li.now .pt { color: var(--gold); }
+.sim-label { display: block; margin-top: 10px; font-size: .8rem; color: var(--muted); }
+.chat li.system.sched { border-color: var(--gold); border-style: solid; }

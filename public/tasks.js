@@ -1,6 +1,6 @@
 // Aufgabenpool Riga-Challenge
 // Stufen: 1 = Leicht, 3 = Mittel, 5 = Hardcore (Zahl = Punkte)
-// Eine Aufgabe ist ein Text oder { t: "Text", where: ["bar", "markt", "stadt", "outdoor"] }
+// Eine Aufgabe ist ein Text oder { t: "Text", where: ["bar", "markt", ...] } (nur an diesen Orten)
 
 // Orte: welche Kategorien das Rad dort zeigt (die erste kommt doppelt aufs Rad)
 export const LOCATIONS = [
@@ -9,6 +9,11 @@ export const LOCATIONS = [
   { id: "outdoor", name: "Outdoor", icon: "🌲", cats: ["outdoor", "geheim", "gruppe"] },
   { id: "stadt", name: "Stadt", icon: "🏰", cats: ["stadt", "lettland", "geheim", "gruppe"] },
   { id: "alles", name: "Alles", icon: "🎲", cats: null },
+  // nur über den Zeitplan erreichbar (keine Kachel):
+  { id: "axt", name: "Axt- & Messerwerfen", icon: "🪓", cats: ["axt", "geheim", "gruppe"], hidden: true },
+  { id: "essen", name: "Essen", icon: "🍽️", cats: ["essen", "lettland", "geheim", "gruppe"], hidden: true },
+  { id: "zentralmarkt", name: "Zentralmarkt", icon: "🐟", cats: ["lettland", "stadt", "geheim", "gruppe"], hidden: true },
+  { id: "husky", name: "Husky-Tour", icon: "🐺", cats: ["outdoor", "geheim", "gruppe"], hidden: true },
 ];
 
 export const CATEGORIES = [
@@ -99,6 +104,10 @@ export const CATEGORIES = [
         "Wirf einen Schneeball (oder Tannenzapfen) und triff einen Baum.",
         "Mach ein Foto, auf dem du genauso guckst wie ein Tier in deiner Nähe.",
         "Ruf beim nächsten Losgehen oder Losfahren laut „Auf geht's!“.",
+        { t: "Gib einem Husky einen Spitznamen und stell ihn der Gruppe vor.", where: ["husky"] },
+        { t: "Heul mit den Huskys um die Wette.", where: ["husky"] },
+        { t: "Mach ein Selfie mit dem flauschigsten Husky.", where: ["husky"] },
+        { t: "Lerne die Namen von 3 Huskys.", where: ["husky"] },
       ],
       3: [
         "Stell das nächste Tier, das du siehst, der Gruppe vor wie bei einer Hochzeitsrede.",
@@ -106,6 +115,9 @@ export const CATEGORIES = [
         "Frag einen Guide oder Einheimischen nach seinem verrücktesten Erlebnis und erzähl es abends nach.",
         "Kommentiere die nächste Fahrt (Bus, Taxi oder was auch immer) live wie Formel 1 (gefilmt).",
         "Mach einen Fotoshoot im Stil eines Polarforschers.",
+        { t: "Kommentiere die Schlittenfahrt live wie Formel 1 (gefilmt).", where: ["husky"] },
+        { t: "Frag den Musher nach seinem verrücktesten Erlebnis und erzähl es abends nach.", where: ["husky"] },
+        { t: "Lass dir vom Musher ein Kommando beibringen und ruf es beim nächsten Start.", where: ["husky"] },
         "Wette: Tipp, wer aus der Gruppe als Erstes über Kälte jammert. Liegst du richtig, trinken die anderen.",
         "Erklär der Gruppe 1 Minute lang, warum du in der Wildnis am längsten überleben würdest.",
         "Lass dir von einem Guide oder Einheimischen ein Kommando oder einen Trick beibringen und wende ihn an.",
@@ -117,6 +129,61 @@ export const CATEGORIES = [
         "Lass dich mit der Gruppe fotografieren und posiere wie ein König auf seinem Thron.",
         "Überrede einen Guide, dich etwas selbst machen zu lassen, das normalerweise nur er macht.",
         "Mach 10 Liegestütze im Schnee (oder auf kaltem Boden).",
+        { t: "Halte 1 Minute lang eine Laudatio auf den Leithund.", where: ["husky"] },
+        { t: "Dreh ein 30-Sekunden-Musikvideo mit Huskys.", where: ["husky"] },
+        { t: "Lass dich mit dem ganzen Gespann fotografieren und posiere wie ein König.", where: ["husky"] },
+      ],
+    },
+  },
+  {
+    // Achtung: Beim Werfen gibt es keine Shots, Strafen sind dort Liegestütze (siehe app.js)
+    id: "axt", name: "Axt- & Messerwerfen", short: "Axt", icon: "🪓", color: "#57534e",
+    tasks: {
+      1: [
+        "Gib deiner Axt einen Namen und stell sie der Gruppe vor.",
+        "Kampfschrei vor jedem deiner nächsten 3 Würfe.",
+        "Wirf deinen nächsten Wurf mit geschlossenem Mund und ernstem Blick wie ein Wikinger.",
+        "Mach ein Siegerfoto mit deinem besten Treffer.",
+        "Tipp vor dem nächsten Durchgang, wer am schlechtesten wirft. Liegst du richtig: Applaus für dich.",
+        "Feuere den nächsten Werfer an wie bei einem Boxkampf.",
+      ],
+      3: [
+        "Triff beim nächsten Durchgang mindestens einmal das Brett mit der schwachen Hand.",
+        "Erklär vor deinem Wurf 30 Sekunden lang deine „Technik“ wie ein Profi-Trainer.",
+        "Wette: Du triffst die Mitte innerhalb von 3 Würfen. Wenn nicht: 10 Liegestütze.",
+        "Kommentiere einen kompletten Durchgang der anderen wie ein Sportreporter.",
+        "Lass dir vom Trainer einen Profi-Tipp geben und setze ihn sichtbar um.",
+        "Duell gegen einen Mitspieler deiner Wahl: Wer mehr Punkte wirft, gewinnt. Verlierer: 10 Liegestütze.",
+      ],
+      5: [
+        "Triff die Mitte (Bullseye) in diesem Durchgang.",
+        "Gewinne das Gruppen-Turnier oder mach Platz 1 bei einem Durchgang.",
+        "Wirf drei Mal hintereinander so, dass alle drei stecken bleiben.",
+        "Halte nach dem Werfen eine 1-minütige Siegerrede, egal wie schlecht du warst.",
+      ],
+    },
+  },
+  {
+    id: "essen", name: "Essen", short: "Essen", icon: "🍽️", color: "#b45309",
+    tasks: {
+      1: [
+        "Bestell auf Lettisch: „Lūdzu“ (bitte) und „Paldies“ (danke) sind Pflicht.",
+        "Mach das schönste Food-Foto am Tisch wie ein Influencer.",
+        "Probier etwas vom Teller deines linken Nachbarn.",
+        "Bestell ein Getränk, das du noch nie getrunken hast.",
+        "Erzähl einen Trinkspruch, bevor alle anfangen zu essen.",
+      ],
+      3: [
+        "Bestell das Gericht mit dem längsten Namen auf der Karte.",
+        "Lass den Kellner für dich bestellen.",
+        "Iss ein komplettes Gericht nur mit der falschen Hand.",
+        "Bewerte jedes Gericht am Tisch wie ein Sterne-Kritiker (1 Minute).",
+        "Finde heraus, was das typischste lettische Gericht auf der Karte ist, und überzeug einen Mitspieler, es zu bestellen.",
+      ],
+      5: [
+        "Bezahl die Rechnung des ganzen Tisches mit einem selbstgereimten Gedicht ans Personal (bezahlt wird trotzdem 😉).",
+        "Iss das schärfste oder seltsamste Gericht auf der Karte komplett auf.",
+        "Bring die Bedienung dazu, ein Foto mit der Gruppe zu machen und dabei Grimassen zu ziehen.",
       ],
     },
   },
@@ -158,30 +225,36 @@ export const CATEGORIES = [
         { t: "Finde die schwarzen Katzen auf dem Katzenhaus und stell ihre Pose nach.", where: ["stadt"] },
         { t: "Mach ein Gruppenfoto vor den Drei Brüdern.", where: ["stadt"] },
         { t: "Bedank dich heute 10 Mal mit „Paldies“ bei Einheimischen.", where: ["bar", "markt", "stadt"] },
-        { t: "Probier ein Stück lettisches Roggenbrot.", where: ["markt", "stadt"] },
+        { t: "Probier ein Stück lettisches Roggenbrot.", where: ["markt", "stadt", "zentralmarkt", "essen"] },
         { t: "Trink einen Kwas.", where: ["bar", "markt"] },
         { t: "Kauf Laima-Schokolade und verteil sie an die Gruppe.", where: ["markt", "stadt"] },
         { t: "Mach ein Foto unter der Laima-Uhr.", where: ["stadt"] },
         { t: "Finde die Plakette zum „ersten Weihnachtsbaum“ am Rathausplatz.", where: ["markt", "stadt"] },
+        { t: "Mach auf dem Zentralmarkt ein Foto mit dem lustigsten Gemüse, das du findest.", where: ["zentralmarkt"] },
+        { t: "Probier auf dem Zentralmarkt etwas Eingelegtes und beschreib den Geschmack wie ein Sommelier.", where: ["zentralmarkt"] },
       ],
       3: [
         { t: "Trink Black Balsam in einer Sorte, die die Gruppe wählt.", where: ["bar", "markt"] },
-        { t: "Iss eine Portion Graue Erbsen mit Speck.", where: ["markt", "stadt"] },
-        { t: "Bestell im Lido ein Gericht, das du nicht kennst, und iss es auf.", where: ["stadt"] },
-        { t: "Kauf auf dem Zentralmarkt etwas Geräuchertes und lass die Gruppe blind probieren.", where: ["stadt"] },
+        { t: "Iss eine Portion Graue Erbsen mit Speck.", where: ["markt", "stadt", "essen"] },
+        { t: "Bestell im Lido ein Gericht, das du nicht kennst, und iss es auf.", where: ["stadt", "essen"] },
+        { t: "Kauf auf dem Zentralmarkt etwas Geräuchertes und lass die Gruppe blind probieren.", where: ["zentralmarkt"] },
         { t: "Lern die erste Zeile von „Dievs, svētī Latviju“ und sing sie einem Einheimischen vor.", where: ["bar", "markt", "stadt"] },
         { t: "Stell vor dem Freiheitsdenkmal die Pose von Milda nach.", where: ["stadt"] },
         { t: "Erklär oben auf dem Turm der Petrikirche 1 Minute lang die Aussicht wie ein Reiseführer.", where: ["stadt"] },
         { t: "Imitiere in der Albert-Straße die verrückteste Jugendstil-Fratze.", where: ["stadt"] },
         { t: "Frag einen Einheimischen nach dem besten lettischen Eishockeyteam und überzeug die Gruppe davon.", where: ["bar", "stadt"] },
         { t: "Bestell ein lettisches Bier mit einem ganzen lettischen Satz.", where: ["bar"] },
+        { t: "Finde auf dem Zentralmarkt die Halle mit dem stärksten Geruch und mach dort ein Gruppenselfie.", where: ["zentralmarkt"] },
+        { t: "Handle auf dem Zentralmarkt einen Preis runter, ohne ein Wort Englisch zu benutzen.", where: ["zentralmarkt"] },
+        { t: "Kauf das größte Stück Fisch, das du für 5 € bekommst, und trag es bis zum Ausgang wie eine Trophäe.", where: ["zentralmarkt"] },
       ],
       5: [
         { t: "Trink einen Black Balsam und halte direkt danach eine 30-Sekunden-Liebeserklärung an Lettland.", where: ["bar", "markt"] },
         { t: "Lass dir von einem Einheimischen einen Volkstanz-Schritt beibringen und tanz ihn auf dem Markt.", where: ["markt"] },
         { t: "Sing die erste Strophe von „Dievs, svētī Latviju“ in einer Bar vor der Gruppe.", where: ["bar"] },
         { t: "Ruf auf der Mitte der Steinbrücke so laut du kannst „Priekā, Rīga!“.", where: ["stadt"] },
-        { t: "Iss die seltsamste Spezialität vom Zentralmarkt (Gruppe entscheidet).", where: ["stadt"] },
+        { t: "Iss die seltsamste Spezialität vom Zentralmarkt (Gruppe entscheidet).", where: ["zentralmarkt"] },
+        { t: "Lass dir von einem Marktverkäufer erklären, wie man sein Lieblingsprodukt isst, und mach es vor allen nach.", where: ["zentralmarkt"] },
         { t: "Lass dir einen lettischen Spitznamen geben und stell dich den Rest des Tages damit vor.", where: ["bar", "markt", "stadt"] },
       ],
     },
@@ -337,3 +410,75 @@ export const IMPOSTER_WORDS = {
     "Peinliches Video", "Flughafenbier", "Jägermeister", "Mitternachtssnack",
   ],
 };
+
+// ---------- Reise-Zeitplan ----------
+// Alle Zeiten in Riga-Zeit (+02:00). loc = welche Aufgaben in dieser Zeit kommen.
+// pause = keine Pflicht-Alarme. surprise = vorher wird nur der Teaser-Titel gezeigt.
+// teasers: min = Minuten relativ zum Start (negativ = vorher). startText = Meldung beim Start.
+export const TRIP = { start: "2026-12-03T13:00:00+02:00", end: "2026-12-06T14:30:00+02:00" };
+export const SCHEDULE = [
+  {
+    id: "ankunft", title: "Ankunft & Transfer ins Hotel", icon: "✈️",
+    start: "2026-12-03T12:00:00+02:00", end: "2026-12-03T14:00:00+02:00", loc: "stadt", pause: true,
+    startText: "✈️ Willkommen in Riga! Ab 14 Uhr läuft der Automat. Sveiki! 🇱🇻",
+  },
+  {
+    id: "axt", title: "Axt- & Messerwerfen", icon: "🪓",
+    start: "2026-12-03T15:00:00+02:00", end: "2026-12-03T16:15:00+02:00", loc: "axt", noBooze: true,
+    teasers: [{ min: -60, text: "🪓 In 1 Stunde wird's scharf! Wer trifft, gewinnt. Wer daneben wirft, macht Liegestütze. Vorher nüchtern bleiben, Zielwasser gibt's danach 😉" }],
+    startText: "🪓 Axt- & Messerwerfen läuft! Wurf-Aufgaben sind freigeschaltet. Strafen hier: Liegestütze statt Shots.",
+  },
+  {
+    id: "altstadt", title: "Altstadt erkunden", icon: "🏰",
+    start: "2026-12-03T16:30:00+02:00", end: "2026-12-03T18:00:00+02:00", loc: "stadt",
+    startText: "🏰 Altstadt! Stadt- und Lettland-Aufgaben sind freigeschaltet. Sucht die Katzen auf dem Katzenhaus 🐈‍⬛",
+  },
+  {
+    id: "weihnachtsmarkt", title: "Weihnachtsmarkt Domplatz", icon: "🎄",
+    start: "2026-12-03T18:00:00+02:00", end: "2026-12-03T21:30:00+02:00", loc: "markt",
+    teasers: [{ min: -60, text: "🎄 In 1 Stunde: Glühwein, Lebkuchen und „Last Christmas“. Weihnachtsmarkt-Aufgaben werden freigeschaltet!" }],
+    startText: "🎄 Weihnachtsmarkt Domplatz! Jetzt kommen die Markt-Aufgaben. Wer zuerst „Last Christmas“ hört, gibt einen aus 🎶",
+  },
+  {
+    id: "husky", title: "Husky-Tour", icon: "🐺", surprise: true, teaserTitle: "Überraschung", teaserIcon: "🌲",
+    start: "2026-12-04T08:30:00+02:00", end: "2026-12-04T13:00:00+02:00", loc: "husky",
+    teasers: [
+      { min: -660, text: "🤫 Morgen um 8:30 geht's los. Mehr wird nicht verraten. Nur so viel: Mütze, Handschuhe, warme Schuhe. Und heute nicht zu spät ins Bett 😉" },
+      { min: -60, text: "🌲 In 1 Stunde: Die Überraschung! Zieht alles an, was warm ist. Kaffee rein und los!" },
+    ],
+    startText: "🐺 ÜBERRASCHUNG: HUSKY-TOUR! Die Outdoor-Aufgaben sind freigeschaltet, plus geheime Husky-Aufgaben. Mush! 🛷",
+  },
+  {
+    id: "mittag", title: "Mittagessen", icon: "🍽️",
+    start: "2026-12-04T13:30:00+02:00", end: "2026-12-04T15:00:00+02:00", loc: "essen",
+    startText: "🍽️ Mittagessen! Restaurant-Aufgaben sind freigeschaltet. Labu apetīti!",
+  },
+  {
+    id: "zentralmarkt", title: "Riga Zentralmarkt", icon: "🐟",
+    start: "2026-12-04T15:30:00+02:00", end: "2026-12-04T17:30:00+02:00", loc: "zentralmarkt",
+    teasers: [{ min: -60, text: "🐟 In 1 Stunde: Zeppelinhallen, Räucherfisch und Dinge, die ihr nicht aussprechen könnt. Bereit für den Zentralmarkt?" }],
+    startText: "🐟 Zentralmarkt! Markt-Aufgaben sind freigeschaltet. Mutig probieren gibt Punkte.",
+  },
+  {
+    id: "bars-fr", title: "Bars & Kneipen", icon: "🍺",
+    start: "2026-12-04T19:00:00+02:00", end: "2026-12-05T03:00:00+02:00", loc: "bar",
+    teasers: [{ min: -60, text: "🍺 In 1 Stunde startet die Kneipentour! Rundenkasse bereithalten, Black Balsam wartet 😈" }],
+    startText: "🍺 Kneipentour! Bar-Aufgaben sind freigeschaltet. Als Erstes: Wer zahlt die erste Runde? → Kasse",
+  },
+  {
+    id: "freizeit", title: "Freizeit", icon: "🎲",
+    start: "2026-12-05T10:00:00+02:00", end: "2026-12-06T03:00:00+02:00", loc: "stadt",
+    startText: "🎲 Freizeit! Kein Programm, aber der Automat kennt keine Freizeit 😈 Seid ihr in einer Bar? Dann den Bar-Knopf drücken.",
+  },
+  {
+    id: "finale", title: "Finale", icon: "🏁",
+    start: "2026-12-06T12:00:00+02:00", end: "2026-12-06T14:30:00+02:00", loc: "stadt",
+    teasers: [{ min: -60, text: "🏁 In 1 Stunde beginnt das Finale! Letzte Chance, Punkte zu holen. Der Letzte bekommt die Verlierer-Aufgabe 😬" }],
+    startText: "🏁 FINALE! Letzte Aufgaben, letzte Urteile, letzte Runde. Um 14 Uhr zieht der Letzte seine Verlierer-Aufgabe (Punkte → Finale).",
+  },
+  {
+    id: "abflug", title: "Transfer & Abflug", icon: "✈️",
+    start: "2026-12-06T14:30:00+02:00", end: "2026-12-06T18:00:00+02:00", loc: "stadt", pause: true,
+    startText: "✈️ Ab zum Flughafen. Paldies, Rīga! Das Spiel ist vorbei. Endstand unter Punkte 🏆",
+  },
+];

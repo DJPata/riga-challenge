@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getMessaging, getToken, isSupported as messagingSupported } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
 import { firebaseConfig, VAPID_KEY } from "./firebase-config.js";
-import { CATEGORIES, JOKER, FINALE, IMPOSTER_WORDS, LOCATIONS, WHO_WOULD } from "./tasks.js";
+import { CATEGORIES, JOKER, FINALE, IMPOSTER_WORDS, LOCATIONS, WHO_WOULD, SCHEDULE, TRIP } from "./tasks.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -23,11 +23,43 @@ const COOLDOWN_MINUTES = 30;  // frühestens so lange nach dem letzten Ziehen gi
 const MIN = 60 * 1000;
 let testMode = false;         // im Admin-Bereich umschaltbar: keine Wartezeit
 
-// ---------- Standort (pro Spieler) ----------
+// ---------- Zeitplan ----------
+// Während der Reise bestimmt der Zeitplan, welche Aufgaben kommen. Vorher wählt man den Ort selbst (zum Testen).
+const T = (iso) => new Date(iso).getTime();
+const EVENTS = SCHEDULE.map((e) => ({ ...e, s: T(e.start), e: T(e.end) }));
+const TRIP_START = T(TRIP.start);
+const TRIP_END = T(TRIP.end);
+// Zeit-Simulation zum Testen (Admin → Zeitplan testen), wirkt nur auf diesem Handy und nur auf Ort/Programm
+const simOffset = () => { try { return Number(localStorage.getItem("riga-sim") || 0); } catch { return 0; } };
+const nowS = () => Date.now() + simOffset();
+const inTrip = (t) => t >= TRIP_START && t < TRIP_END;
+const eventAt = (t) => EVENTS.find((e) => t >= e.s && t < e.e) || null;
+const nextEventAfter = (t) => EVENTS.filter((e) => e.s > t).sort((a, b) => a.s - b.s)[0] || null;
+const scheduleMode = () => inTrip(nowS()) || !!eventAt(nowS());
+const evTitle = (e, t = nowS()) => (e.surprise && t < e.s ? `${e.teaserIcon || "❓"} ${e.teaserTitle || "Überraschung"}` : `${e.icon} ${e.title}`);
+const hm = (t) => new Date(t).toLocaleTimeString("de-DE", { timeZone: "Europe/Riga", hour: "2-digit", minute: "2-digit" });
+const dayHm = (t) => new Date(t).toLocaleString("de-DE", { timeZone: "Europe/Riga", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const penalty = () => (eventAt(nowS())?.noBooze ? "10 Liegestütze" : "Strafshot");
+
+// ---------- Standort ----------
 let loc = null;
 const normLoc = (l) => (l === "husky" ? "outdoor" : l) || null; // alter Name
+function effectiveLoc() {
+  if (!me) return null;
+  if ((me.barUntil || 0) > Date.now()) return "bar";
+  const t = nowS();
+  const ev = eventAt(t);
+  if (ev) return ev.loc;
+  if (inTrip(t)) return "stadt";
+  return normLoc(me.loc);
+}
 const taskText = (t) => (typeof t === "string" ? t : t.t);
-const fitsLoc = (t) => !loc || loc === "alles" || typeof t === "string" || !t.where || t.where.includes(loc);
+// Aufgaben mit "where" kommen nur an diesen Orten. Husky-Aufgaben bleiben bis zur Tour geheim.
+const fitsLoc = (t) => {
+  if (typeof t === "string" || !t.where) return true;
+  if (!loc || loc === "alles") return !t.where.every((w) => w === "husky");
+  return t.where.includes(loc);
+};
 function catsFor(locId) {
   const L = LOCATIONS.find((l) => l.id === locId);
   if (!L || !L.cats) return CATEGORIES;
@@ -37,7 +69,7 @@ function catsFor(locId) {
 function renderLocGrid() {
   const box = $("#loc-grid");
   box.innerHTML = "";
-  LOCATIONS.forEach((l) => {
+  LOCATIONS.filter((l) => !l.hidden).forEach((l) => {
     const b = document.createElement("button");
     b.className = "loc-tile" + (l.id === loc ? " on" : "");
     b.innerHTML = `<span class="i">${l.icon}</span><span class="n"></span>`;
@@ -45,6 +77,29 @@ function renderLocGrid() {
     b.onclick = () => updateDoc(doc(db, "players", meId), { loc: l.id });
     box.appendChild(b);
   });
+}
+function renderWhere() {
+  const auto = scheduleMode();
+  $("#loc-grid").classList.toggle("hidden", auto);
+  $("#loc-manual-hint").classList.toggle("hidden", auto);
+  $("#sched-now").classList.toggle("hidden", !auto);
+  $("#loc-title").textContent = auto ? "📍 Programm" : "Schritt 1 · Wo bist du gerade?";
+  const t = nowS();
+  const barOn = (me?.barUntil || 0) > Date.now();
+  if (auto) {
+    const ev = eventAt(t);
+    const nx = nextEventAfter(t);
+    const L = LOCATIONS.find((l) => l.id === loc);
+    $("#sched-now").innerHTML = `
+      <div class="now-line"><span class="now-big">${ev ? evTitle(ev, t) : "🎲 Freies Programm"}</span>
+        ${ev ? `<span class="muted small">bis ${hm(ev.e)}</span>` : ""}</div>
+      <div class="muted small">Aufgaben: ${barOn ? "🍺 Bar" : L ? `${L.icon} ${L.name}` : "–"}${ev?.noBooze && !barOn ? " · Strafen hier: 10 Liegestütze statt Shot" : ""}</div>
+      ${nx ? `<div class="next-line">Als Nächstes: <b>${evTitle(nx, t)}</b> · ${dayHm(nx.s)}</div>` : ""}`;
+  }
+  const b = $("#bar-btn");
+  b.textContent = barOn ? `🍺 Bar-Modus an (bis ${hm(me.barUntil)}) · beenden` : "🍺 Wir sind in einer Bar";
+  b.classList.toggle("on", barOn);
+  b.classList.toggle("hidden", !auto);
 }
 let meId = localStorage.getItem("riga-player");
 let me = null;
@@ -193,11 +248,7 @@ function listenGame() {
     onSnapshot(doc(db, "players", meId), (s) => {
       if (!s.exists()) return switchPlayer();
       me = s.data();
-      if (normLoc(me.loc) !== loc) {
-        loc = normLoc(me.loc);
-        renderLocGrid();
-        if (!spinning) resetReels();
-      }
+      updateLoc();
       $("#me-name").textContent = me.name;
       $("#me-points").textContent = me.points;
       renderSecrets();
@@ -498,7 +549,8 @@ $("#imp-new").onclick = () =>
 let boardDocs = [];
 const mmss = (ms) => {
   const t = Math.max(0, Math.ceil(ms / 1000));
-  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = String(t % 60).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 };
 function playerStatus(p) {
   const now = Date.now();
@@ -674,8 +726,8 @@ async function resolveCurrent(res) {
   const label = {
     done: "hat geschafft",
     half: "hat versucht",
-    refuse: "hat verweigert (Strafshot!)",
-    expired: "hat die Zeit verpennt ⏰ (Strafshot!)",
+    refuse: `hat verweigert (${penalty()}!)`,
+    expired: `hat die Zeit verpennt ⏰ (${penalty()}!)`,
   }[res];
   try {
     await updateDoc(doc(db, "players", meId), { points: increment(pts), current: null });
@@ -684,8 +736,8 @@ async function resolveCurrent(res) {
     const chatTxt = {
       done: `✅ ${me.name} hat die Aufgabe geschafft (${sign}): „${cur.text}“`,
       half: `🤏 ${me.name} hat die Aufgabe nur halb geschafft (${sign}): „${cur.text}“`,
-      refuse: `❌ ${me.name} hat die Aufgabe verweigert (${sign}, Strafshot! 🥃): „${cur.text}“`,
-      expired: `⏰ ${me.name} hat die Zeit verpennt (${sign}, Strafshot! 🥃): „${cur.text}“`,
+      refuse: `❌ ${me.name} hat die Aufgabe verweigert (${sign}, ${penalty()}! ${penalty() === "Strafshot" ? "🥃" : "💪"}): „${cur.text}“`,
+      expired: `⏰ ${me.name} hat die Zeit verpennt (${sign}, ${penalty()}! ${penalty() === "Strafshot" ? "🥃" : "💪"}): „${cur.text}“`,
     }[res];
     await chatSystem(chatTxt, res === "done" ? "ok" : res === "half" ? "half" : "fail");
     toast(pts > 0 ? `+${pts} Punkte` : res === "expired" ? `Zeit abgelaufen: ${pts} Punkte` : `${pts} Punkte. Prost!`);
@@ -704,7 +756,10 @@ let alarmSetting = false;                             // im Admin-Bereich für a
 // Testrunde: bis zu diesem Zeitpunkt ist der Pflicht-Alarm automatisch für alle an
 const TEST_ROUND_END = new Date("2026-11-08T22:00:00+01:00").getTime();
 const inTestRound = () => Date.now() < TEST_ROUND_END;
-const alarmEnabled = () => alarmSetting || inTestRound();
+// Alarme laufen: während der Reise automatisch, sonst in der Testrunde oder wenn im Admin eingeschaltet.
+// Pausiert bei Programmpunkten mit pause (Anreise, Abflug).
+const alarmOnAt = (t) => (alarmSetting || t < TEST_ROUND_END || inTrip(t)) && !EVENTS.some((e) => e.pause && t >= e.s && t < e.e);
+const alarmEnabled = () => alarmSetting || inTestRound() || inTrip(Date.now());
 
 // Zufällige, aber auf allen Handys gleiche Alarmzeit innerhalb einer Stunde
 function alarmAt(hourIdx) {
@@ -715,7 +770,7 @@ function alarmAt(hourIdx) {
   return hourIdx * HOUR + (x % 3600) * 1000;
 }
 const RIGA_HOUR = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Riga", hour: "2-digit", hourCycle: "h23" });
-const alarmAllowed = (t) => alarmHourOk(Number(RIGA_HOUR.format(t))); // Ruhezeit nach Riga-Uhrzeit
+const alarmAllowed = (t) => alarmHourOk(Number(RIGA_HOUR.format(t))) && alarmOnAt(t); // Ruhezeit nach Riga-Uhrzeit
 function lastAlarm(now = Date.now()) {
   for (let h = Math.floor(now / HOUR), k = 0; k < 30; k++, h--) {
     const t = alarmAt(h);
@@ -731,7 +786,6 @@ function nextAlarm(now = Date.now()) {
   return null;
 }
 function activeAlarm(now = Date.now()) {
-  if (!alarmEnabled()) return null;
   const t = lastAlarm(now);
   return t && now - t < ALARM_WINDOW_MIN * MIN ? t : null;
 }
@@ -788,9 +842,9 @@ $("#alarm-close").onclick = () => $("#alarm-overlay").classList.add("hidden");
 function checkAlarm() {
   const card = $("#alarm-card");
   $("#test-banner").classList.toggle("hidden", !inTestRound());
-  if (!alarmEnabled()) return card.classList.add("hidden");
-  card.classList.remove("hidden");
   const now = Date.now();
+  if (!activeAlarm(now) && !nextAlarm(now)) return card.classList.add("hidden");
+  card.classList.remove("hidden");
   const al = activeAlarm(now);
   if (al) {
     let seen = null;
@@ -811,6 +865,86 @@ function checkAlarm() {
   }
 }
 
+// ---------- Zeitplan-Meldungen (Teaser 1 h vorher, Start) ----------
+// Der Server schickt dazu Push-Nachrichten. Hier: Chat-Meldung und Hinweis, falls die App offen ist.
+const SCHED_MSGS = EVENTS.flatMap((e) => [
+  ...(e.teasers || []).map((t, i) => ({ id: `${e.id}-t${i}`, at: e.s + t.min * MIN, title: e.surprise ? `${e.teaserIcon || "❓"} ${e.teaserTitle || "Überraschung"}` : `${e.icon} ${e.title}`, text: t.text })),
+  ...(e.startText ? [{ id: `${e.id}-start`, at: e.s, title: `${e.icon} ${e.title}`, text: e.startText }] : []),
+]);
+function checkSchedule() {
+  const now = Date.now();
+  SCHED_MSGS.forEach((m) => {
+    if (now < m.at || now - m.at > 20 * MIN) return;
+    let seen = null;
+    try { seen = localStorage.getItem("riga-sched-" + m.id); } catch {}
+    if (seen) return;
+    try { localStorage.setItem("riga-sched-" + m.id, "1"); } catch {}
+    notify(m.title, m.text);
+    setDoc(doc(db, "chat", `sched-${m.id}`), { byId: "system", who: "", system: true, kind: "sched", at: serverTimestamp(), text: m.text }).catch(() => {});
+  });
+}
+function updateLoc() {
+  const l = effectiveLoc();
+  if (l !== loc) {
+    loc = l;
+    renderLocGrid();
+    if (!spinning) resetReels();
+  }
+  renderWhere();
+}
+// Zeitplan für den Server ablegen (Push für Teaser und Alarm-Pausen)
+async function publishSchedule() {
+  const cfg = {
+    messages: SCHED_MSGS,
+    pauses: EVENTS.filter((e) => e.pause).map((e) => ({ s: e.s, e: e.e })),
+    tripStart: TRIP_START, tripEnd: TRIP_END, testRoundEnd: TEST_ROUND_END,
+  };
+  const version = JSON.stringify(cfg).length + ":" + SCHED_MSGS.map((m) => m.id + m.at).join("|").length + ":" + JSON.stringify(cfg).split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  try {
+    const cur = await getDoc(doc(db, "game", "schedule"));
+    if (!cur.exists() || cur.data().version !== version) await setDoc(doc(db, "game", "schedule"), { ...cfg, version });
+  } catch {}
+}
+
+// Programm-Übersicht
+function renderProgram() {
+  const t = nowS();
+  let lastDay = "";
+  $("#program").innerHTML = EVENTS.map((e) => {
+    const day = new Date(e.s).toLocaleDateString("de-DE", { timeZone: "Europe/Riga", weekday: "long", day: "2-digit", month: "2-digit" });
+    const head = day !== lastDay ? `<li class="day">${day}</li>` : "";
+    lastDay = day;
+    const state = t >= e.e ? "past" : t >= e.s ? "now" : "";
+    return `${head}<li class="${state}"><span class="pt">${hm(e.s)}–${hm(e.e)}</span><span>${evTitle(e, t)}</span></li>`;
+  }).join("");
+}
+
+// Bar-Knopf: 3 Stunden Bar-Aufgaben (nur für dich)
+$("#bar-btn").onclick = () =>
+  updateDoc(doc(db, "players", meId), { barUntil: (me.barUntil || 0) > Date.now() ? 0 : Date.now() + 3 * 60 * MIN });
+
+// Admin: Zeitplan testen (Zeit nur auf diesem Handy vorspulen)
+(function setupSim() {
+  const sel = $("#sim-select");
+  sel.innerHTML = '<option value="">Echte Zeit</option>' +
+    EVENTS.map((e) => `<option value="${e.s + 30 * MIN}">${dayHm(e.s + 30 * MIN)} · ${e.icon} ${e.title}</option>`).join("") +
+    `<option value="${T("2026-12-04T22:00:00+02:00")}">Fr 22:00 · Bars (abends)</option>`;
+  sel.onchange = () => {
+    try {
+      if (sel.value) localStorage.setItem("riga-sim", String(Number(sel.value) - Date.now()));
+      else localStorage.removeItem("riga-sim");
+    } catch {}
+    updateSimBanner();
+    updateLoc();
+    renderProgram();
+  };
+})();
+function updateSimBanner() {
+  const off = simOffset();
+  $("#sim-banner").classList.toggle("hidden", !off);
+  if (off) $("#sim-banner").textContent = `🧪 Simulation: ${dayHm(nowS())} (nur auf diesem Handy) · Punkte → Admin → Echte Zeit`;
+}
+
 // ---------- Sekundentakt: Countdown, Wartezeit, Ablauf ----------
 function tick() {
   if (!me) return;
@@ -824,6 +958,8 @@ function tick() {
     if (left <= 0) resolveCurrent("expired");
   }
   checkAlarm();
+  checkSchedule();
+  updateLoc();
   const st = slotState();
   $("#pull").disabled = !st.ok || spinning;
   $("#slot-status").textContent = spinning ? "Rattert…" : st.msg;
@@ -834,6 +970,10 @@ function startTicker() {
   tickerStarted = true;
   setInterval(tick, 1000);
   setInterval(renderBoard, 15000);
+  setInterval(() => { renderProgram(); updateSimBanner(); }, 30000);
+  renderProgram();
+  updateSimBanner();
+  publishSchedule();
 }
 
 // Geheimmissionen
@@ -979,8 +1119,8 @@ async function verdict(id) {
   });
   await chatSystem(
     guilty
-      ? `🔨 SCHULDIG (${g}:${i})! ${d.accusedName} wegen „${d.charge}“: −1 Punkt und Strafshot 🥃`
-      : `🔨 FREISPRUCH (${g}:${i})! ${d.accusedName} ist unschuldig. Ankläger ${d.byName}: −1 Punkt und Strafshot 🥃`,
+      ? `🔨 SCHULDIG (${g}:${i})! ${d.accusedName} wegen „${d.charge}“: −1 Punkt und ${penalty()} 🥃`
+      : `🔨 FREISPRUCH (${g}:${i})! ${d.accusedName} ist unschuldig. Ankläger ${d.byName}: −1 Punkt und ${penalty()} 🥃`,
     "fail"
   );
 }
