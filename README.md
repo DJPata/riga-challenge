@@ -40,7 +40,7 @@ Dann `http://localhost:5000` öffnen (zwei Browserfenster = zwei Spieler).
 
 ## So funktioniert's
 
-- **Reiseplan statt Ortswahl:** Während der Reise (Do 3.12., 13:00 bis So 6.12., 14:30, Riga-Zeit) bestimmt der Zeitplan in `tasks.js` (`SCHEDULE`), welche Aufgaben kommen: Axtwerfen, Altstadt, Weihnachtsmarkt, Husky-Tour (bis zum Start als „Überraschung“ getarnt), Mittagessen, Zentralmarkt, Bars, Freizeit, Finale. Außerhalb der Programmpunkte gelten Stadt-Aufgaben. Mit „🍺 Wir sind in einer Bar“ gibt es 3 Stunden lang Bar-Aufgaben. Vor der Reise wählt man den Ort noch selbst über Kacheln.
+- **Reiseplan statt Ortswahl:** Während der Reise (Do 10.12., 13:00 bis So 13.12., 14:30, Riga-Zeit) bestimmt der Zeitplan in `tasks.js` (`SCHEDULE`), welche Aufgaben kommen: Axtwerfen, Altstadt, Weihnachtsmarkt, Husky-Tour (bis zum Start als „Überraschung“ getarnt), Mittagessen, Zentralmarkt, Bars, Freizeit, Finale. Außerhalb der Programmpunkte gelten Stadt-Aufgaben. Mit „🍺 Wir sind in einer Bar“ gibt es 3 Stunden lang Bar-Aufgaben. Vor der Reise wählt man den Ort noch selbst über Kacheln.
 - **Teaser:** Eine Stunde vor Programmpunkten (bei der Husky-Tour zusätzlich am Vorabend) kommt eine Push-Nachricht und eine Chat-Meldung, beim Start eine Startmeldung. Bei Anreise und Abflug sind die Pflicht-Alarme pausiert. Während der Reise laufen die Alarme automatisch.
 - **Axtwerfen:** Strafen sind dort 10 Liegestütze statt Shots.
 - **Zeitplan testen:** *Punkte → Admin → Zeitplan testen* spult die Zeit nur auf dem eigenen Handy vor (nur Ort und Programm, keine Alarme).

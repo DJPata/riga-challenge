@@ -928,7 +928,7 @@ $("#bar-btn").onclick = () =>
   const sel = $("#sim-select");
   sel.innerHTML = '<option value="">Echte Zeit</option>' +
     EVENTS.map((e) => `<option value="${e.s + 30 * MIN}">${dayHm(e.s + 30 * MIN)} · ${e.icon} ${e.title}</option>`).join("") +
-    `<option value="${T("2026-12-04T22:00:00+02:00")}">Fr 22:00 · Bars (abends)</option>`;
+    `<option value="${T("2026-12-11T22:00:00+02:00")}">Fr 22:00 · Bars (abends)</option>`;
   sel.onchange = () => {
     try {
       if (sel.value) localStorage.setItem("riga-sim", String(Number(sel.value) - Date.now()));

@@ -415,33 +415,33 @@ export const IMPOSTER_WORDS = {
 // Alle Zeiten in Riga-Zeit (+02:00). loc = welche Aufgaben in dieser Zeit kommen.
 // pause = keine Pflicht-Alarme. surprise = vorher wird nur der Teaser-Titel gezeigt.
 // teasers: min = Minuten relativ zum Start (negativ = vorher). startText = Meldung beim Start.
-export const TRIP = { start: "2026-12-03T13:00:00+02:00", end: "2026-12-06T14:30:00+02:00" };
+export const TRIP = { start: "2026-12-10T13:00:00+02:00", end: "2026-12-13T14:30:00+02:00" };
 export const SCHEDULE = [
   {
     id: "ankunft", title: "Ankunft & Transfer ins Hotel", icon: "✈️",
-    start: "2026-12-03T12:00:00+02:00", end: "2026-12-03T14:00:00+02:00", loc: "stadt", pause: true,
+    start: "2026-12-10T12:00:00+02:00", end: "2026-12-10T14:00:00+02:00", loc: "stadt", pause: true,
     startText: "✈️ Willkommen in Riga! Ab 14 Uhr läuft der Automat. Sveiki! 🇱🇻",
   },
   {
     id: "axt", title: "Axt- & Messerwerfen", icon: "🪓",
-    start: "2026-12-03T15:00:00+02:00", end: "2026-12-03T16:15:00+02:00", loc: "axt", noBooze: true,
+    start: "2026-12-10T15:00:00+02:00", end: "2026-12-10T16:15:00+02:00", loc: "axt", noBooze: true,
     teasers: [{ min: -60, text: "🪓 In 1 Stunde wird's scharf! Wer trifft, gewinnt. Wer daneben wirft, macht Liegestütze. Vorher nüchtern bleiben, Zielwasser gibt's danach 😉" }],
     startText: "🪓 Axt- & Messerwerfen läuft! Wurf-Aufgaben sind freigeschaltet. Strafen hier: Liegestütze statt Shots.",
   },
   {
     id: "altstadt", title: "Altstadt erkunden", icon: "🏰",
-    start: "2026-12-03T16:30:00+02:00", end: "2026-12-03T18:00:00+02:00", loc: "stadt",
+    start: "2026-12-10T16:30:00+02:00", end: "2026-12-10T18:00:00+02:00", loc: "stadt",
     startText: "🏰 Altstadt! Stadt- und Lettland-Aufgaben sind freigeschaltet. Sucht die Katzen auf dem Katzenhaus 🐈‍⬛",
   },
   {
     id: "weihnachtsmarkt", title: "Weihnachtsmarkt Domplatz", icon: "🎄",
-    start: "2026-12-03T18:00:00+02:00", end: "2026-12-03T21:30:00+02:00", loc: "markt",
+    start: "2026-12-10T18:00:00+02:00", end: "2026-12-10T21:30:00+02:00", loc: "markt",
     teasers: [{ min: -60, text: "🎄 In 1 Stunde: Glühwein, Lebkuchen und „Last Christmas“. Weihnachtsmarkt-Aufgaben werden freigeschaltet!" }],
     startText: "🎄 Weihnachtsmarkt Domplatz! Jetzt kommen die Markt-Aufgaben. Wer zuerst „Last Christmas“ hört, gibt einen aus 🎶",
   },
   {
     id: "husky", title: "Husky-Tour", icon: "🐺", surprise: true, teaserTitle: "Überraschung", teaserIcon: "🌲",
-    start: "2026-12-04T08:30:00+02:00", end: "2026-12-04T13:00:00+02:00", loc: "husky",
+    start: "2026-12-11T08:30:00+02:00", end: "2026-12-11T13:00:00+02:00", loc: "husky",
     teasers: [
       { min: -660, text: "🤫 Morgen um 8:30 geht's los. Mehr wird nicht verraten. Nur so viel: Mütze, Handschuhe, warme Schuhe. Und heute nicht zu spät ins Bett 😉" },
       { min: -60, text: "🌲 In 1 Stunde: Die Überraschung! Zieht alles an, was warm ist. Kaffee rein und los!" },
@@ -450,35 +450,35 @@ export const SCHEDULE = [
   },
   {
     id: "mittag", title: "Mittagessen", icon: "🍽️",
-    start: "2026-12-04T13:30:00+02:00", end: "2026-12-04T15:00:00+02:00", loc: "essen",
+    start: "2026-12-11T13:30:00+02:00", end: "2026-12-11T15:00:00+02:00", loc: "essen",
     startText: "🍽️ Mittagessen! Restaurant-Aufgaben sind freigeschaltet. Labu apetīti!",
   },
   {
     id: "zentralmarkt", title: "Riga Zentralmarkt", icon: "🐟",
-    start: "2026-12-04T15:30:00+02:00", end: "2026-12-04T17:30:00+02:00", loc: "zentralmarkt",
+    start: "2026-12-11T15:30:00+02:00", end: "2026-12-11T17:30:00+02:00", loc: "zentralmarkt",
     teasers: [{ min: -60, text: "🐟 In 1 Stunde: Zeppelinhallen, Räucherfisch und Dinge, die ihr nicht aussprechen könnt. Bereit für den Zentralmarkt?" }],
     startText: "🐟 Zentralmarkt! Markt-Aufgaben sind freigeschaltet. Mutig probieren gibt Punkte.",
   },
   {
     id: "bars-fr", title: "Bars & Kneipen", icon: "🍺",
-    start: "2026-12-04T19:00:00+02:00", end: "2026-12-05T03:00:00+02:00", loc: "bar",
+    start: "2026-12-11T19:00:00+02:00", end: "2026-12-12T03:00:00+02:00", loc: "bar",
     teasers: [{ min: -60, text: "🍺 In 1 Stunde startet die Kneipentour! Rundenkasse bereithalten, Black Balsam wartet 😈" }],
     startText: "🍺 Kneipentour! Bar-Aufgaben sind freigeschaltet. Als Erstes: Wer zahlt die erste Runde? → Kasse",
   },
   {
     id: "freizeit", title: "Freizeit", icon: "🎲",
-    start: "2026-12-05T10:00:00+02:00", end: "2026-12-06T03:00:00+02:00", loc: "stadt",
+    start: "2026-12-12T10:00:00+02:00", end: "2026-12-13T03:00:00+02:00", loc: "stadt",
     startText: "🎲 Freizeit! Kein Programm, aber der Automat kennt keine Freizeit 😈 Seid ihr in einer Bar? Dann den Bar-Knopf drücken.",
   },
   {
     id: "finale", title: "Finale", icon: "🏁",
-    start: "2026-12-06T12:00:00+02:00", end: "2026-12-06T14:30:00+02:00", loc: "stadt",
+    start: "2026-12-13T12:00:00+02:00", end: "2026-12-13T14:30:00+02:00", loc: "stadt",
     teasers: [{ min: -60, text: "🏁 In 1 Stunde beginnt das Finale! Letzte Chance, Punkte zu holen. Der Letzte bekommt die Verlierer-Aufgabe 😬" }],
     startText: "🏁 FINALE! Letzte Aufgaben, letzte Urteile, letzte Runde. Um 14 Uhr zieht der Letzte seine Verlierer-Aufgabe (Punkte → Finale).",
   },
   {
     id: "abflug", title: "Transfer & Abflug", icon: "✈️",
-    start: "2026-12-06T14:30:00+02:00", end: "2026-12-06T18:00:00+02:00", loc: "stadt", pause: true,
+    start: "2026-12-13T14:30:00+02:00", end: "2026-12-13T18:00:00+02:00", loc: "stadt", pause: true,
     startText: "✈️ Ab zum Flughafen. Paldies, Rīga! Das Spiel ist vorbei. Endstand unter Punkte 🏆",
   },
 ];
